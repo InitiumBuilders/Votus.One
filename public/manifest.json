@@ -1,0 +1,16 @@
+{
+  "name": "Votus.One",
+  "short_name": "Votus",
+  "description": "Move As One. Teams who run together, govern together. ///AllRise///",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

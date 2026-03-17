@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import VotusMark from "@/components/VotusMark";
+
+export const metadata: Metadata = {
+  title: "Ethos — What We Stand For",
+  description: "Service over ego. Move as one. Transparency on-chain. Problems don't wait. The speed of trust. These are the beliefs that move us.",
+  openGraph: { title: "Ethos — What We Stand For", description: "The principles stitched into every thread, coded into every vote." },
+};
 import SoundGate from "@/components/SoundEngine";
 import PageFooter from "@/components/PageFooter";
 import EthosCarousel from "@/components/EthosCarousel";

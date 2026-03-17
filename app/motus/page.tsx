@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
+
+export const metadata: Metadata = {
+  title: "Motus — Move As One",
+  description: "Our clothing brand for Gift Gear. Send Motus when someone goes above and beyond. $Votus for decisions. $Motus for those who move.",
+  openGraph: { title: "Motus — Move As One", description: "Gift Gear. $Votus for decisions. $Motus for those who move." },
+};
 import VotusMark from "@/components/VotusMark";
 import Waitlist from "@/components/Waitlist";
 import SoundGate from "@/components/SoundEngine";

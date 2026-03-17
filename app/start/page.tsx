@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import VotusMark from "@/components/VotusMark";
 import SoundGate from "@/components/SoundEngine";
 import UnitForm from "@/components/UnitForm";
 import PageFooter from "@/components/PageFooter";
+
+export const metadata: Metadata = {
+  title: "Start A Votus Unit",
+  description: "Maybe the hero we were looking for has been all of us over time. Register your Votus Unit. Five people is enough. One hundred is powerful. Votus.One/start",
+  openGraph: { title: "Start A Votus Unit", description: "Five people is enough. One hundred is powerful. Start yours at Votus.One" },
+};
 
 export default function Start() {
   const dim = "rgba(250,250,250,0.4)";

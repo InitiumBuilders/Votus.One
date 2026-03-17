@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
+
+export const metadata: Metadata = {
+  title: "///AllRise/// — A Votus.One Experience",
+  description: "What if the people who cared the most had the simplest way to show up? Not once every four years. Not alone. Together. ///AllRise///",
+  openGraph: { title: "///AllRise///", description: "The cure for apathy isn't louder leaders — it's a seat at the table." },
+};
 import VotusMark from "@/components/VotusMark";
 import Waitlist from "@/components/Waitlist";
 import SoundGate from "@/components/SoundEngine";

@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import VotusMark from "@/components/VotusMark";
 import SoundGate from "@/components/SoundEngine";
 import PageFooter from "@/components/PageFooter";
+
+export const metadata: Metadata = {
+  title: "Introducing — The Declaration",
+  description: "I want to run for office. I want to do it right. And I want to do it out of service. No ego involved. Start A Votus Unit. Start Together.",
+  openGraph: { title: "The Declaration", description: "No ego involved. Start A Votus Unit. Start Together." },
+};
 
 export default function Introducing() {
   const dim = "rgba(250,250,250,0.45)";
