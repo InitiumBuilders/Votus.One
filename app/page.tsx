@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import SoundGate from "@/components/SoundEngine";
 import Countdown from "@/components/Countdown";
 import SubCount from "@/components/SubCount";
@@ -12,6 +12,14 @@ export default function Home() {
   const rushAnimation = useCallback(() => {
     if (!rushed) setRushed(true);
   }, [rushed]);
+
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const fast = rushed;
   const d = (normal: string) => fast ? "0s" : normal;
@@ -124,6 +132,9 @@ export default function Home() {
         style={{
           ["--del" as string]: d("10.8s"),
           ["--dur" as string]: dur("1s"),
+          opacity: scrolled ? 0 : undefined,
+          pointerEvents: scrolled ? "none" : undefined,
+          transition: scrolled ? "opacity 0.4s ease" : undefined,
         } as React.CSSProperties}
       >
         <p style={{
@@ -182,7 +193,8 @@ export default function Home() {
 
         {/* MOTUS */}
         <Link href="/motus" className="vl vlink" style={{
-          fontSize: "clamp(3.2rem, 13vw, 7.5rem)",
+          fontSize: "clamp(2.2rem, 10vw, 7.5rem)",
+          whiteSpace: "nowrap",
           fontWeight: 200,
           letterSpacing: "0.12em",
           textTransform: "uppercase",
