@@ -329,6 +329,76 @@ BUGS
       return;
     }
 
+    // ── Philosophical / thought-provoking ──
+    if (cmd === "hero") {
+      typewriter("Maybe the hero we were looking for has been all of us over time.", 40);
+      return;
+    }
+    if (cmd === "why") {
+      addLine("You came looking for something. You wouldn't be in a terminal if you didn't care.");
+      return;
+    }
+    if (cmd === "table") {
+      addLine("There is a seat at the table with your name on it. Nobody is going to pull it out for you.");
+      return;
+    }
+    if (cmd === "apathy") {
+      typewriter("The cure for apathy isn't information. It's a table. With chairs. And someone saying: sit.", 35);
+      return;
+    }
+    if (cmd === "five") {
+      addLine("Five people who show up every time will outperform a million who show up once.");
+      return;
+    }
+    if (cmd === "seed") {
+      addLine("Every forest began with one seed that didn't ask permission to grow.");
+      return;
+    }
+    if (cmd === "small") {
+      addLine("The large is a reflection of the small. Your block is a country in miniature.");
+      return;
+    }
+    if (cmd === "together") {
+      typewriter("You are not here to be right. You are here to see together.", 40);
+      return;
+    }
+    if (cmd === "tuesday") {
+      addLine("Every 4 years is not often enough to care. What if you cared every Tuesday?");
+      return;
+    }
+    if (cmd === "midnight") {
+      addLine("Someone in your neighborhood is awake right now, worrying about the same thing you are.");
+      return;
+    }
+    if (cmd === "sat" || cmd === "saturday") {
+      addLine("What if democracy felt like something you wanted to do on a Saturday morning?");
+      return;
+    }
+    if (cmd === "mirror") {
+      addLine("You scrolled past a hundred things today. You stopped at a terminal. That says something.");
+      return;
+    }
+    if (cmd === "fractal") {
+      addLine("The pattern of the whole is reflected in each part. What pattern are you making?");
+      return;
+    }
+    if (cmd === "water") {
+      typewriter("Be like water. Change is constant. The river doesn't fight the rock. It becomes the canyon.", 30);
+      return;
+    }
+    if (cmd === "listen") {
+      addLine("Everyone writes before anyone speaks. That's the protocol. That's the respect.");
+      return;
+    }
+    if (cmd === "brave") {
+      addLine("Starting something that might fail takes more courage than watching from the comments.");
+      return;
+    }
+    if (cmd === "contribute") {
+      addLine("git clone https://github.com/InitiumBuilders/Votus.One — The movement is open source.");
+      return;
+    }
+
     addLine(`Command not found: ${raw.trim()}. Type 'help' for commands.`);
   }, [addLine, addLines, typewriter]);
 

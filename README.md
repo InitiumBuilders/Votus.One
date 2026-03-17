@@ -243,21 +243,58 @@ Every page has an ambient soundscape built with the **Web Audio API** — no ext
 
 Votus.One has hidden interactions woven throughout. Some are visible. Most aren't.
 
-**Known Easter Eggs:**
+**There are 28 hidden interactions. Here are some.**
 
-| Trigger | What Happens |
-|---------|--------------|
-| Click the V sigil 7 times | Arcane activation sequence |
-| Type `motus` anywhere on the site | Something stirs |
-| Hover the arcane mark for 3 seconds | The glyphs respond |
-| Click the fox in the footer | It winks |
-| Type `I am the archmage` | Confetti. You earned it. |
-| Tab away and back | The page title becomes runes |
-| Right-click anywhere | Custom context menu |
-| Scroll to the very bottom of the Grimoire | Secret text appears |
-| Find the terminal | `/terminal` — try `ls`, `cat README.md`, `ssh votus.one` |
+#### The Cyber Layer (original 14)
 
-**There are more. We're not telling.**
+| # | Trigger | What Happens |
+|---|---------|--------------|
+| 01 | Konami code (↑↑↓↓←→←→BA) | ACCESS_GRANTED |
+| 02 | Type `sudo` | ROOT ACCESS DENIED — Democracy has no superusers |
+| 03 | Type `hack` | Intentions logged. The network sees you. |
+| 04 | Type `trust` | On-chain. Immutable. Yours forever. |
+| 05 | Type `whoami` | You are a Votus Vibe. Welcome home. |
+| 06 | Type `ping` | Democracy is alive. Latency: 0ms. |
+| 07 | Type `decrypt` | Animated decryption: "The future is not written. It is voted." |
+| 08 | Type `allrise` | Matrix rain. The signal is activated. |
+| 09 | Right-click anywhere | INSPECT_MODE — transparency is the first protocol |
+| 10 | Sit idle for 45 seconds | SIGNAL_DETECTED — you were still enough to hear it |
+| 11 | Long-press 2 seconds | PATIENCE_PROTOCOL — governance rewards the steady hand |
+| 12 | Type `22` | $22 — less than your streaming subscription |
+| 13 | Double-click any headline | HEADER_BREACH |
+| 14 | Type `source` | VIEW_SOURCE — this movement is open. Always. |
+
+#### The Philosophical Layer (14 more)
+
+These are different. Quieter. They ask questions instead of making statements.
+
+| # | Trigger | The Question |
+|---|---------|-------------|
+| 15 | Type `hero` | "What if the person you've been waiting for... is a team?" |
+| 16 | Select (highlight) any text longer than 20 chars | "You scrolled past a hundred things today. You stopped here. Why?" |
+| 17 | Visit the site on a Tuesday | "Every 4 years is not often enough. What if you cared every Tuesday?" |
+| 18 | Type `small` | "The large is a reflection of the small. Your block is a country in miniature." |
+| 19 | Type `apathy` | "The cure for apathy isn't information. It's a table. With chairs." |
+| 20 | Leave the tab for 30+ seconds, then come back | "Someone in your neighborhood is awake right now, worrying about the same thing." |
+| 21 | Resize the browser window 5 times | "Five people who show up every time outperform a million who show up once." |
+| 22 | Hover on any link for 4 seconds | "You can't move faster than relationships can hold. That's not a bug." |
+| 23 | Scroll to ~50% of any page | "There is a seat at the table with your name on it." |
+| 24 | Scroll to 100% of any page | "You found it by being curious. That's emergent strategy." |
+| 25 | Leave the tab 5-30 seconds, come back | "What if democracy felt like something you wanted to do on Saturday morning?" |
+| 26 | Type `seed` | "Every forest began with one seed that didn't ask permission to grow." |
+| 27 | Triple-click anywhere | "Somewhere a unit is meeting tonight. Somewhere one hasn't started yet. Both are about you." |
+| 28 | Type `together` | "You are not here to be right. You are here to see together." |
+
+#### The Terminal (`/terminal`)
+
+A full interactive CLI hidden in the site. Try:
+`ls`, `cat manifesto.txt`, `whoami`, `vote` (keep voting), `decrypt motus`,
+`citizens`, `fortune`, `neofetch`, `man votus`, `hero`, `water`, `listen`,
+`brave`, `together`, `42`, `cd ..`, `rm -rf /`, `love`
+
+On mobile: swipe up-down-up-down to access the terminal.
+
+**There are still more. We're not telling.**
 
 ### Contribute an Easter Egg
 
@@ -350,6 +387,8 @@ VOTUS_ADMIN_KEY=         # Admin operations key
 **Year 3** — On-chain voting via Dash Platform. $Votus and $Motus live.  
 **Year 5** — Votus Units are a recognized form of civic organizing.  
 **Year 10** — Democracy looks different because we showed up.
+
+→ **[Read NEXT_STEPS.md](./NEXT_STEPS.md)** for the full evolution roadmap, leverage points, and phase-by-phase build plan.
 
 ---
 
