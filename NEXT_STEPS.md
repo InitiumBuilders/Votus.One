@@ -8,6 +8,8 @@ This document maps the highest-leverage moves for Votus.One.
 Not a roadmap — a living compass. These are the pressure points  
 where a small push creates a large shift.
 
+<!-- You found it. The leverage map has a hidden 14th item: You, reading this right now, deciding whether to fork or walk away. The 14th leverage point is always the person who stayed long enough to read the fine print. -->
+
 ---
 
 ## Phase 1 — Foundation (Now → 30 Days)

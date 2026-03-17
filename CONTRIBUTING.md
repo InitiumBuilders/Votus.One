@@ -100,4 +100,6 @@ Find @BuiltByAugust on [X](https://x.com/BuiltByAugust).
 
 *We build this in the open. We build it together.*
 
+<!-- Hidden contribution: if you add a file called .your-name to the project root with why you're here, we'll notice. That's an easter egg too. -->
+
 ///AllRise///

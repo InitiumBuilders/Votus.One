@@ -85,7 +85,7 @@ Built lean. Built to last. Built to move.
 
 | Layer | Tech | Why |
 |-------|------|-----|
-| **Frontend** | Next.js 15 (App Router) | Fast, static where possible, server where needed |
+| **Frontend** | Next.js 15 (App Router) | Fast, static where possible, server where needed <!-- Psst: try /terminal --> |
 | **Styling** | Inline styles | Zero CSS conflicts, zero framework lock-in |
 | **Database** | Vercel KV (Upstash Redis) | Serverless, instant, no schema migrations |
 | **Auth** | Custom JWT-less session (KV cookies) | No external auth service needed |
@@ -407,6 +407,11 @@ VOTUS_ADMIN_KEY=         # Admin operations key
 
 MIT — use it, fork it, build on it.  
 If you use it to make democracy more human, we consider that a win.
+
+<!-- The password is: showing up. -->
+<!-- If you found this, type "source" on the live site. -->
+<!-- Or try: decrypt love -->
+<!-- You're reading the HTML comments of a democracy platform. That's the kind of person we need. -->
 
 ---
 

@@ -44,11 +44,58 @@ const FILES: Record<string, string> = {
   "manifesto.txt": MANIFESTO,
   "constitution.md": "CLASSIFIED — Earn access through participation.",
   "sacred_assets.log": "DASH 🔒 | TRUST 🔒 | ANKR 🔒 — Some things are never for sale.",
-  "README.md": "You found the terminal. Now find the movement. votus.one",
+  "README.md": "You found the terminal. Now find the movement. Votus.One",
   ".secret": "The password is: showing up.",
   ".motus_log": `[2026-01-01] First movement detected.
 [2026-02-15] Love entered the protocol.
 [2026-03-17] You are reading this. That counts.`,
+  "flywheels.md": `THE VOTUS FLYWHEELS
+───────────────────
+1. UNIT: Start → Decide → Trust → Earn → Attract → Grow → Run
+2. MOTUS: Serve → Recognize → Culture → Attract → Strengthen → Repeat
+3. COMMUNITY: One unit → Visible results → "We could do that" → New unit → Connect → Rise
+4. DISCORD: Register → Join → Discuss → Propose → Vote → Grow → Recruit → ///AllRise///`,
+  "protocol.md": `THE VOTUS UNIT PROTOCOL
+───────────────────────
+1. Find your people (one other is enough)
+2. Name your unit (it becomes your short link)
+3. Register at Votus.One/start
+4. Create an account (email + password)
+5. Set your first meeting (physical is powerful)
+6. Everyone writes before anyone speaks
+7. Share Votus.One/u/your-name with the world`,
+  ".love_letter": `Dear future citizen,
+
+You found this file. That means you looked deeper
+than most. That means you care about things
+that are hidden. That means you understand that
+the best things in a system are the ones
+you have to earn the right to see.
+
+Welcome. You belong here.
+
+~August James, 2026`,
+  ".the_question": "What if the people who cared the most had the simplest way to show up?",
+  "contributors.md": `HOW TO CONTRIBUTE
+─────────────────
+git clone https://github.com/InitiumBuilders/Votus.One
+npm install
+npm run dev
+
+Ways to contribute:
+- 🐛 Fix a bug
+- ✨ Build a feature
+- 🥚 Hide an easter egg
+- 📖 Improve docs
+- 🎨 Design something beautiful
+- 📣 Start a Votus Unit (that counts too)`,
+  ".adrienne": "\"What you pay attention to grows.\" — adrienne maree brown",
+  ".donella": "\"The goal of foreseeing the future is not to control it, but to care for it.\" — Donella Meadows",
+  ".seeds": `SEED_001: Chicago
+SEED_002: [YOUR CITY HERE]
+SEED_003: [YOUR NEIGHBORHOOD HERE]
+
+To plant a seed: Votus.One/start`,
 };
 
 const FORTUNES = [
@@ -64,6 +111,22 @@ const FORTUNES = [
   "\"The moment the room gets quiet enough to hear the truth.\"",
   "\"Acta Non Verba.\"",
   "\"I am small. I am strong. And I am always still learning.\"",
+  "\"The cure for apathy isn't louder leaders — it's a seat at the table.\"",
+  "\"Maybe the hero we were looking for has been all of us over time.\"",
+  "\"Every forest began with one seed that didn't ask permission to grow.\"",
+  "\"Five people who show up every time will outperform a million who show up once.\"",
+  "\"The large is a reflection of the small. Your block is a country in miniature.\"",
+  "\"Trust the people. If you trust the people, they become trustworthy.\"",
+  "\"Change is constant. Be like water.\"",
+  "\"There is always enough time for the right work.\"",
+  "\"Somewhere a Votus Unit is meeting tonight. Somewhere one hasn't started yet. Both are about you.\"",
+  "\"The goal of foreseeing the future is not to control it, but to care for it.\" — Donella Meadows",
+  "\"An ounce of practice is worth more than tons of preaching.\" — Gandhi",
+  "\"You never change things by fighting the existing reality. Build a new model that makes the old one obsolete.\" — Buckminster Fuller",
+  "\"When I dare to be powerful — to use my strength in the service of my vision — it becomes less important whether I am afraid.\" — Audre Lorde",
+  "\"Not everything that is faced can be changed, but nothing can be changed until it is faced.\" — James Baldwin",
+  "\"The only way to deal with an unfree world is to become so absolutely free that your very existence is an act of rebellion.\" — Camus",
+  "\"In the middle of difficulty lies opportunity.\" — Einstein",
 ];
 
 const CITIZENS = [
@@ -77,10 +140,21 @@ const CITIZENS = [
 
 const DECRYPT_MESSAGES: Record<string, string> = {
   "motus": "MOTUS = Movement. The force that pulls people from apathy to action.",
-  "votus": "VOTUS = Voice + Us. Democracy reimagined as a living network.",
+  "votus": "VOTUS = Voice + Us. Vote Us. Democracy reimagined as a living network.",
   "allrise": "ALL RISE = The courtroom call. But this time, it's for everyone.",
   "semble": "SEMBLE = To assemble, to resemble, to gather. The Emergent State.",
   "22": "$22/month. Less than Netflix. The cost of citizenship in a better future.",
+  "vibe": "VIBE = A Votus team. 3-12 people who move as one. The smallest unit of change.",
+  "flywheel": "FLYWHEEL = A system where every output becomes the next input. Units grow by growing others.",
+  "emergent": "EMERGENT = Not planned from above. Arising from below. From relationship. From trust.",
+  "sacred": "SACRED = What we protect. DASH 🔒 TRUST 🔒 ANKR 🔒 — and the belief that people can govern themselves.",
+  "gift": "GIFT GEAR = Buy one, gift one. The fundraiser IS the product. Clothing that moves.",
+  "trust": "TRUST = The velocity of a community. Move at the speed of it, or break trying to go faster.",
+  "seed": "SEED = Every Votus Unit starts as a seed. You don't need permission to plant one.",
+  "table": "TABLE = There is a seat with your name on it. The table was always meant to be bigger.",
+  "fractal": "FRACTAL = The pattern of the whole reflected in each part. Fix your block, fix the country.",
+  "love": "LOVE = The only protocol that scales without breaking. The substrate underneath everything.",
+  "democracy": "DEMOCRACY = Not an event. A practice. Not something you watch. Something you do. Every Tuesday.",
 };
 
 const NEOFETCH = `
@@ -396,6 +470,162 @@ BUGS
     }
     if (cmd === "contribute") {
       addLine("git clone https://github.com/InitiumBuilders/Votus.One — The movement is open source.");
+      return;
+    }
+    if (cmd === "flywheel" || cmd === "flywheels") {
+      addLine(FILES["flywheels.md"]);
+      return;
+    }
+    if (cmd === "protocol") {
+      addLine(FILES["protocol.md"]);
+      return;
+    }
+    if (cmd === "github" || cmd === "git" || cmd === "repo") {
+      addLine("https://github.com/InitiumBuilders/Votus.One — Fork it. Build on it. Make democracy more human.");
+      return;
+    }
+    if (cmd === "donate" || cmd === "fund" || cmd === "money") {
+      addLine("$22/month. Per person. That's the cost. No venture capital. No gatekeepers. Just people showing up.");
+      return;
+    }
+    if (cmd === "vibe") {
+      addLine("A Vibe is a team of 3-12 people who move as one. Start one: Votus.One/start");
+      return;
+    }
+    if (cmd === "gift" || cmd === "gear" || cmd === "giftgear") {
+      typewriter("GIFT GEAR — Buy one, gift one. The fundraiser IS the product. Clothing that moves people.", 35);
+      return;
+    }
+    if (cmd === "join") {
+      addLine("Visit Votus.One/start to register your unit, or Votus.One/votus-units to find one near you.");
+      return;
+    }
+    if (cmd === "discord") {
+      addLine("https://discord.gg/BDUDhayHeX — The nerve center. Where Vibes coordinate.");
+      return;
+    }
+    if (cmd === "dream") {
+      typewriter("Year 1: 100 units. Year 2: first team runs for office. Year 5: recognized civic form. Year 10: democracy looks different.", 30);
+      return;
+    }
+    if (cmd === "fear") {
+      addLine("Fear is natural. Apathy is the enemy. The difference between them is one decision.");
+      return;
+    }
+    if (cmd === "hope") {
+      addLine("Hope is not optimism. Hope is the decision to act when the outcome is uncertain. You're here. That's hope.");
+      return;
+    }
+    if (cmd === "vote" && voteCount.current === 0) {
+      // Already handled above, but this is for the first-time special message
+    }
+    if (cmd === "change") {
+      typewriter("Change is constant. Be like water. The river doesn't fight the rock — it becomes the canyon.", 30);
+      return;
+    }
+    if (cmd === "patience") {
+      addLine("The systems that last are the ones that grew slowly enough to grow roots.");
+      return;
+    }
+    if (cmd === "roots") {
+      addLine("Before branches, there were roots. Before movements, there were conversations. Before Votus, there was a question.");
+      return;
+    }
+    if (cmd === "question") {
+      typewriter("What if the people who cared the most had the simplest way to show up?", 40);
+      return;
+    }
+    if (cmd === "answer") {
+      addLine("The answer was always: yes, if you build the container.");
+      return;
+    }
+    if (cmd === "show") {
+      addLine("Showing up is the most radical act in a world designed to make you stay home.");
+      return;
+    }
+    if (cmd === "home") {
+      addLine("Home is not a place. It's the people who see you when you walk in. That's what a Votus Unit is.");
+      return;
+    }
+    if (cmd === "time") {
+      addLine(`Local: ${new Date().toLocaleString()} | Votus Standard Time: Always.`);
+      return;
+    }
+    if (cmd === "count") {
+      addLine("Counting the people who show up is more important than counting the ones who don't.");
+      return;
+    }
+    if (cmd === "start") {
+      typewriter("Start before you're ready. Start before you're sure. Start before you're told it's safe. Votus.One/start", 30);
+      return;
+    }
+    if (cmd === "name") {
+      addLine("VOTUS — from the Latin 'votum' (a vow, a wish, a promise). VOTE US. The team is the candidate.");
+      return;
+    }
+    if (cmd === "color") {
+      addLine("Cyan #00d4ff — the color of civic light. Not red. Not blue. Something new.");
+      return;
+    }
+    if (cmd === "music") {
+      addLine("Every page has a soundscape. Synthesized in-browser with the Web Audio API. No files. Pure frequency. Pure intention.");
+      return;
+    }
+    if (cmd === "sound") {
+      addLine("Sound on. The movement has a frequency.");
+      return;
+    }
+    if (cmd === "kristina") {
+      addLine("Co-founder. Strategist. The person who said 'this could actually work' and meant it.");
+      return;
+    }
+    if (cmd === "chicago") {
+      addLine("SEED_001: Chicago. Where it started. Where the first unit will meet. The wind knows what's coming.");
+      return;
+    }
+    if (cmd === "emerge" || cmd === "emergence") {
+      typewriter("Emergence: when the whole becomes greater than the sum of its parts. That's what happens when five people decide to govern themselves.", 25);
+      return;
+    }
+    if (cmd === "teach") {
+      addLine("The best way to learn governance is to govern. The best way to teach democracy is to practice it.");
+      return;
+    }
+    if (cmd === "fail") {
+      addLine("Never a failure, always a lesson. The unit that disbanded taught the next one how to stay.");
+      return;
+    }
+    if (cmd === "quiet") {
+      addLine("...");
+      setTimeout(() => addLine("The moment the room gets quiet enough to hear the truth."), 3000);
+      return;
+    }
+    if (cmd === "loud") {
+      addLine("THE SIGNAL IS CLEAR. ///ALLRISE///");
+      return;
+    }
+    if (cmd === "sleep") {
+      addLine("Democracy never sleeps. But you should. Come back tomorrow and bring a friend.");
+      return;
+    }
+    if (cmd === "wake") {
+      addLine("You're awake now. What will you build with this clarity?");
+      return;
+    }
+    if (cmd === "future") {
+      typewriter("The future is a unit meeting in a living room. Five people with a proposal and a vote. That's it. That's everything.", 30);
+      return;
+    }
+    if (cmd === "past") {
+      addLine("The past gave us institutions that worked for their time. This is ours.");
+      return;
+    }
+    if (cmd === "now") {
+      addLine(`NOW: ${new Date().toISOString()} — The only moment that governance happens in.`);
+      return;
+    }
+    if (cmd === "us") {
+      addLine("Vote. Us. That's the whole idea. Not 'vote for me.' Vote us. Together.");
       return;
     }
 
