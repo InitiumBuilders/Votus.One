@@ -56,24 +56,61 @@ export function UniversalSkill({ skillText }: { skillText: string }) {
 
 export function BuildVessels() {
   return (
-    <Section kicker="Build Your Dashboard" title="One Spec. Six Vessels.">
+    <Section kicker="The Forge · Build Your Dashboard" title="Six Complete Blueprints.">
       <Reveal delay={0.15}>
-        <p style={{ ...bodyStyle, marginBottom: 40 }}>
-          Copy a prompt below into any capable coding agent on the device of your choice, and it will build your personal PromptHero dashboard — working with your system, your data, your context. Local-first. Private by design. Yours.
+        <p style={{ ...bodyStyle, marginBottom: 24 }}>
+          Deep, ironed-out, production-grade build prompts. Copy one into any capable coding agent on the device of your choice and receive a finished PromptHero dashboard — your system, your data, your context. Local-first. Private by design. Yours.
+        </p>
+      </Reveal>
+      <Reveal delay={0.2}>
+        <p style={{ fontSize: 13.5, fontWeight: 300, lineHeight: 2, color: faint, marginBottom: 40 }}>
+          Each blueprint carries the full system: the exact stack, the project scaffold, the data home and schema, all seven screens, the Review engine, the celebration ceremonies, privacy rules, and a testable definition of done. Paste it. Build it. Begin.
         </p>
       </Reveal>
       {BUILD_PROMPTS.map((p, i) => (
         <Reveal key={p.id} delay={0.05 * i}>
-          <PromptBlock title={p.label} icon={p.icon} text={p.prompt} />
+          <PromptBlock title={p.label} icon={p.icon} text={p.prompt} note={p.note} />
         </Reveal>
       ))}
     </Section>
   );
 }
 
+export function TheCharge() {
+  return (
+    <section style={{ ...sectionStyle, padding: "88px 24px" }}>
+      <div style={{ maxWidth: 560, width: "100%" }}>
+        <Reveal>
+          <p style={kickerStyle}>The Charge</p>
+        </Reveal>
+        <Reveal delay={0.15}>
+          <h2 style={{ ...h2Style, marginBottom: 28 }}>Evolve. Go Beyond.</h2>
+        </Reveal>
+        <Reveal delay={0.3}>
+          <p style={{ fontSize: "clamp(1.05rem, 3vw, 1.3rem)", fontWeight: 200, fontStyle: "italic", lineHeight: 2, color: mid, marginBottom: 24 }}>
+            You are not late to AI.<br />You are early to the craft.
+          </p>
+        </Reveal>
+        <Reveal delay={0.45}>
+          <p style={{ fontSize: 14.5, fontWeight: 300, lineHeight: 2.1, color: dim, marginBottom: 28 }}>
+            Every prompt you write from today forward is a rep. Every hard question is a door.
+            The mirror is already in your hands — and the next chapter of your journey names itself
+            the moment you begin. It is always the right time for the right move.
+          </p>
+        </Reveal>
+        <Reveal delay={0.6}>
+          <p style={{ fontSize: 13, letterSpacing: "0.35em", textTransform: "uppercase", color: cyan }}>
+            We Got This 💪 · Look Within · Move As One
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 export function AugustAI() {
   return (
-    <Section kicker="Your Coach" title="August AI — The Motus Mentor">
+    <Section kicker="The Mentor · Your Coach" title="August AI — The Motus Mentor">
       <Reveal delay={0.15}>
         <p style={{ ...bodyStyle, marginBottom: 40 }}>
           Give any AI this soul, and it becomes your coach: feedback, shared learnings, reflections, evolutions, badges, EVOs, new chapters. Honest over flattering. Kind, never soft. Its whole job is to move you. <span style={{ color: cyan }}>Motus.</span>
@@ -93,7 +130,7 @@ export function AugustAI() {
 
 export function Initium({ initiumText }: { initiumText: string }) {
   return (
-    <Section kicker="The Founding Prompt" title="Initium">
+    <Section kicker="The Origin · The Founding Prompt" title="Initium">
       <Reveal delay={0.15}>
         <p style={{ ...bodyStyle, marginBottom: 36 }}>
           Every journey keeps its first prompt. This is the one that created PromptHero — preserved verbatim, momentum and all, because your prompts as they truly are, are the record of how you think. Chapter I opens here.

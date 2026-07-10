@@ -65,8 +65,10 @@ No environment variables required. The site is fully static.
 ## The Original Votus.One
 
 The original site — Votus Units, Motus, Ethos, AllRise, the terminal, all 28 easter
-eggs — is preserved intact on the [`votus-one-v0`](https://github.com/InitiumBuilders/Votus.One/tree/votus-one-v0)
-branch. The movement rests; it does not end. ///AllRise///
+eggs — is preserved with its full history in the private
+[`votus-one-v0`](https://github.com/InitiumBuilders/votus-one-v0) repository (and on the
+[`votus-one-v0`](https://github.com/InitiumBuilders/Votus.One/tree/votus-one-v0) branch here).
+The movement rests; it does not end. ///AllRise///
 
 ## Built By
 

@@ -4,11 +4,12 @@ import Reveal from "@/components/Reveal";
 import SoundVeil from "@/components/prompthero/SoundVeil";
 import SparkMark from "@/components/prompthero/SparkMark";
 import Starfield from "@/components/prompthero/Starfield";
+import Aurora from "@/components/prompthero/Aurora";
 import HeroActions from "@/components/prompthero/HeroActions";
 import PromptFooter from "@/components/prompthero/PromptFooter";
 import { dim, mid, faint, cyan, bodyStyle, sectionStyle, columnStyle, kickerStyle } from "@/components/prompthero/theme";
 import { TheLoop, Dimensions, LeverageLadder, Progression } from "@/components/prompthero/SystemSections";
-import { UniversalSkill, BuildVessels, AugustAI, Initium, Gratitude } from "@/components/prompthero/VesselSections";
+import { UniversalSkill, BuildVessels, AugustAI, Initium, Gratitude, TheCharge } from "@/components/prompthero/VesselSections";
 
 // The skill and the founding prompt live as real files in the repo —
 // the page reads them at build time so the site and the artifact never drift.
@@ -34,8 +35,8 @@ export default function Home() {
     <SoundVeil>
       <style>{`
         @keyframes ph-glow {
-          0%, 100% { text-shadow: 0 0 40px rgba(0,212,255,0.15); }
-          50% { text-shadow: 0 0 70px rgba(0,212,255,0.35), 0 0 120px rgba(255,209,102,0.1); }
+          0%, 100% { filter: drop-shadow(0 0 22px rgba(0,212,255,0.22)); }
+          50% { filter: drop-shadow(0 0 44px rgba(0,212,255,0.4)) drop-shadow(0 0 90px rgba(255,209,102,0.14)); }
         }
         @keyframes ph-line {
           0%, 100% { opacity: 0.3; }
@@ -55,6 +56,7 @@ export default function Home() {
         WebkitFontSmoothing: "antialiased",
         overflow: "hidden",
       }}>
+        <Aurora />
         <Starfield />
 
         <div style={{ position: "relative", zIndex: 1 }}>
@@ -75,6 +77,11 @@ export default function Home() {
                 fontWeight: 200,
                 letterSpacing: "0.14em",
                 marginBottom: 24,
+                background: "linear-gradient(105deg, #9beaff 0%, #00d4ff 42%, #ffd166 105%)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                color: "#00d4ff",
                 animation: "ph-glow 7s ease-in-out infinite",
               }}>PromptHero</h1>
             </Reveal>
@@ -99,6 +106,9 @@ export default function Home() {
           {/* ─── Manifesto ─── */}
           <section style={{ ...sectionStyle, paddingTop: 24 }}>
             <div style={columnStyle}>
+              <Reveal>
+                <p style={{ ...kickerStyle, marginBottom: 36 }}>Prologue · Why The Ask Matters</p>
+              </Reveal>
               {MANIFESTO.map((p, i) => (
                 <Reveal key={i} delay={0.1 * i}>
                   <p style={{ ...bodyStyle, marginBottom: 28, color: i === 1 ? cyan : mid, fontSize: i === 1 ? "clamp(1.15rem, 3.2vw, 1.4rem)" : bodyStyle.fontSize, fontWeight: i === 1 ? 200 : 300 }}>
@@ -121,6 +131,7 @@ export default function Home() {
           <UniversalSkill skillText={skill} />
           <BuildVessels />
           <AugustAI />
+          <TheCharge />
           <Initium initiumText={initium} />
           <Gratitude />
 
