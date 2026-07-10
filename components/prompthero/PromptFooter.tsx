@@ -36,7 +36,7 @@ export default function PromptFooter() {
       </p>
       <div style={{ width: 40, height: 1, background: "rgba(250,250,250,0.06)" }} />
       <p style={{ fontSize: 10, color: "rgba(250,250,250,0.15)", letterSpacing: "0.1em", lineHeight: 2 }}>
-        &copy; 2026 Votus.One &middot; PromptHero Era &middot; The original site rests safe in votus-one-v0<br />
+        &copy; 2026 Votus.One &middot; PromptHero Era &middot; The original site rests safe in the votus-one-v0 vault<br />
         It is always the right time for the right move. 👣
       </p>
     </footer>
