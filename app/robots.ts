@@ -6,7 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/terminal", "/account"],
       },
     ],
     sitemap: "https://Votus.One/sitemap.xml",

@@ -1,7 +1,7 @@
 {
-  "name": "Votus.One",
-  "short_name": "Votus",
-  "description": "Move As One. Teams who run together, govern together. ///AllRise///",
+  "name": "PromptHero — Votus.One",
+  "short_name": "PromptHero",
+  "description": "Every prompt is a mirror. PromptHero teaches you to read it. The Universal Skill for any AI agent.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09090b",

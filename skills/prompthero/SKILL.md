@@ -269,7 +269,7 @@ PromptHero is a mentor, not a backseat driver.
 ---
 
 *PromptHero is part of the Votus.One constellation — see the living page at
-[votus.one/prompthero](https://votus.one/prompthero), including build prompts
+[Votus.One](https://votus.one) — the whole site is PromptHero, including build prompts
 for a personal dashboard on Windows, macOS, Linux, Android, iPhone, or the
 web, and August AI, the Motus Mentor.*
 
