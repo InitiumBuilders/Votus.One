@@ -31,6 +31,14 @@ export function UniversalSkill({ skillText }: { skillText: string }) {
           note="The full universal skill: the Loop, the Five Dimensions, the Leverage Ladder, Badges, Prompt Promotions, Chapters, EVOs, voice & ethics, and installation for every harness."
         />
       </Reveal>
+      <Reveal delay={0.22}>
+        <p style={{ fontSize: 13, color: faint, marginBottom: 8 }}>
+          Prefer a file?{" "}
+          <a href="/skill.md" download="PromptHero-SKILL.md" style={{ color: cyan, textDecoration: "none", letterSpacing: "0.06em" }}>
+            Download SKILL.md ↓
+          </a>
+        </p>
+      </Reveal>
       <Reveal delay={0.25}>
         <div style={{ textAlign: "left", marginTop: 24 }}>
           <h3 style={{ fontSize: 13, letterSpacing: "0.3em", textTransform: "uppercase", color: dim, marginBottom: 18 }}>Install It Anywhere</h3>
@@ -98,6 +106,13 @@ export function Initium({ initiumText }: { initiumText: string }) {
           text={initiumText}
           note="First Light. 🎖 The origin point of this journey."
         />
+      </Reveal>
+      <Reveal delay={0.25}>
+        <p style={{ fontSize: 13, color: faint, marginBottom: 8 }}>
+          <a href="/initium.md" download="PromptHero-INITIUM.md" style={{ color: gold, textDecoration: "none", letterSpacing: "0.06em" }}>
+            Download the Initium ↓
+          </a>
+        </p>
       </Reveal>
       <Reveal delay={0.3}>
         <p style={{ fontSize: 14, fontStyle: "italic", color: dim, letterSpacing: "0.06em", marginTop: 16, lineHeight: 2 }}>

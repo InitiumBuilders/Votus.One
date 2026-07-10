@@ -18,12 +18,12 @@ export async function GET() {
           position: "relative",
         }}
       >
-        {/* Ambient glow */}
+        {/* Ambient glows */}
         <div
           style={{
             position: "absolute",
-            width: 400,
-            height: 400,
+            width: 420,
+            height: 420,
             borderRadius: "50%",
             background: "radial-gradient(circle, rgba(0,212,255,0.12), transparent 70%)",
             top: "50%",
@@ -31,38 +31,49 @@ export async function GET() {
             transform: "translate(-50%, -50%)",
           }}
         />
+        <div
+          style={{
+            position: "absolute",
+            width: 300,
+            height: 300,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(255,209,102,0.08), transparent 70%)",
+            top: "18%",
+            left: "68%",
+          }}
+        />
 
-        {/* V Mark */}
-        <svg width="80" height="80" viewBox="0 0 40 40" fill="none" style={{ marginBottom: 40 }}>
-          <path d="M8 10 L20 32 L32 10" stroke="#00d4ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Spark in the V */}
+        <svg width="96" height="96" viewBox="0 0 48 48" fill="none" style={{ marginBottom: 32 }}>
+          <path d="M10 14 L24 40 L38 14" stroke="rgba(0,212,255,0.4)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M26 6 L18 24 L23.5 24 L21 36 L30 18 L24.5 18 L26 6 Z" stroke="#ffd166" strokeWidth="1.8" strokeLinejoin="round" fill="rgba(255,209,102,0.06)" />
         </svg>
 
         {/* Title */}
         <div
           style={{
-            fontSize: 72,
+            fontSize: 76,
             fontWeight: 200,
             color: "#fafafa",
-            letterSpacing: "0.08em",
-            marginBottom: 16,
+            letterSpacing: "0.1em",
+            marginBottom: 18,
             textShadow: "0 0 60px rgba(0,212,255,0.3)",
           }}
         >
-          Votus.One
+          PromptHero
         </div>
 
         {/* Tagline */}
         <div
           style={{
-            fontSize: 24,
+            fontSize: 26,
             fontWeight: 300,
-            color: "#00d4ff",
-            letterSpacing: "0.25em",
-            textTransform: "uppercase",
-            marginBottom: 40,
+            color: "rgba(250,250,250,0.75)",
+            fontStyle: "italic",
+            marginBottom: 34,
           }}
         >
-          Move As One
+          Every prompt is a mirror. Learn to read it.
         </div>
 
         {/* Divider */}
@@ -71,35 +82,33 @@ export async function GET() {
             width: 80,
             height: 1,
             background: "rgba(0,212,255,0.3)",
-            marginBottom: 40,
+            marginBottom: 34,
           }}
         />
 
-        {/* Description */}
+        {/* Sub */}
         <div
           style={{
             fontSize: 20,
             fontWeight: 300,
-            color: "rgba(250,250,250,0.6)",
-            textAlign: "center",
-            maxWidth: 800,
-            lineHeight: 1.6,
+            color: "#00d4ff",
+            letterSpacing: "0.25em",
+            textTransform: "uppercase",
+            marginBottom: 22,
           }}
         >
-          Teams who run together, govern together, and make democracy human.
+          The Universal Skill · Any Agent
         </div>
 
-        {/* AllRise */}
         <div
           style={{
-            fontSize: 18,
+            fontSize: 17,
             fontWeight: 200,
-            color: "rgba(0,212,255,0.5)",
-            letterSpacing: "0.2em",
-            marginTop: 40,
+            color: "rgba(255,209,102,0.65)",
+            letterSpacing: "0.14em",
           }}
         >
-          ///AllRise///
+          There Is Hope In The Hard Questions · Votus.One
         </div>
       </div>
     ),

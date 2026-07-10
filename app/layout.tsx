@@ -1,20 +1,18 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import EasterEggs from "@/components/EasterEggs";
-import CyberHints from "@/components/CyberHints";
 
 export const metadata: Metadata = {
   title: {
-    default: "Votus.One — Move As One",
+    default: "PromptHero — The Universal Skill | Votus.One",
     template: "%s | Votus.One",
   },
-  description: "Maybe the hero we were looking for has been all of us over time. Votus Units are teams who run together, govern together, and make democracy engaging, accessible, transparent, and human. ///AllRise///",
+  description: "Every prompt is a mirror. PromptHero teaches you to read it. A universal skill for any AI agent that studies how you prompt, coaches your growth one lesson at a time, and writes your evolution: Chapters, Badges, Prompt Promotions, EVOs. There Is Hope In The Hard Questions.",
   metadataBase: new URL("https://Votus.One"),
   keywords: [
-    "Votus", "Votus.One", "democracy", "civic engagement", "team governance",
-    "on-chain voting", "Votus Units", "community organizing", "Move As One",
-    "AllRise", "Motus", "emergent strategy", "participatory democracy",
-    "civic technology", "decentralized governance", "open source democracy",
+    "PromptHero", "prompt engineering", "prompting skill", "AI coaching",
+    "universal skill", "Claude skill", "prompt learning", "prompt education",
+    "Votus", "Votus.One", "Motus Mentor", "August AI", "prompt promotions",
+    "EVOs", "learning journey", "reflection", "Look Within",
   ],
   authors: [
     { name: "August James", url: "https://x.com/BuiltByAugust" },
@@ -25,21 +23,21 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    title: "Votus.One — Move As One",
-    description: "The cure for apathy isn't louder leaders — it's a seat at the table. Start a Votus Unit. Run together. Govern together. ///AllRise///",
+    title: "PromptHero — The Universal Skill",
+    description: "Every prompt is a mirror. A universal skill for any AI agent that grows you into the author of better questions — with Chapters, Badges, Prompt Promotions, and EVOs. Copy it. Install it. Look Within.",
     url: "https://Votus.One",
     siteName: "Votus.One",
     images: [{
       url: "/opengraph-image",
       width: 1200,
       height: 630,
-      alt: "Votus.One — Move As One ///AllRise///",
+      alt: "PromptHero — Every prompt is a mirror. The Universal Skill by Votus.One",
     }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Votus.One — Move As One",
-    description: "Teams who run together, govern together. The cure for apathy is a seat at the table. ///AllRise///",
+    title: "PromptHero — The Universal Skill",
+    description: "Every prompt is a mirror. PromptHero teaches you to read it. There Is Hope In The Hard Questions.",
     creator: "@BuiltByAugust",
     images: ["/opengraph-image"],
   },
@@ -64,7 +62,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://Votus.One",
   },
-  category: "civic technology",
+  category: "education technology",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -75,8 +73,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#09090b" />
       </head>
       <body>
-        <EasterEggs />
-        <CyberHints />
         {children}
       </body>
     </html>
