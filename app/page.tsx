@@ -343,6 +343,13 @@ export default function Home() {
             border: "1px solid rgba(250,250,250,0.07)", borderRadius: 100, padding: "12px 22px",
             transition: "all 0.3s",
           }}>Start A Unit</Link>
+          <Link href="/prompthero" style={{
+            textDecoration: "none", fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase",
+            color: "rgba(255,209,102,0.6)", background: "rgba(255,209,102,0.04)",
+            border: "1px solid rgba(255,209,102,0.15)", borderRadius: 100, padding: "12px 22px",
+            transition: "all 0.3s",
+            boxShadow: "0 0 20px rgba(255,209,102,0.06)",
+          }}>⚡ PromptHero</Link>
           <a href="https://github.com/InitiumBuilders/Votus.One" target="_blank" rel="noopener noreferrer" style={{
             textDecoration: "none", fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase",
             color: "rgba(250,250,250,0.25)",
