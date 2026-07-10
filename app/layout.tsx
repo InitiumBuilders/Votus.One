@@ -11,12 +11,11 @@ export const metadata: Metadata = {
   keywords: [
     "PromptHero", "prompt engineering", "prompting skill", "AI coaching",
     "universal skill", "Claude skill", "prompt learning", "prompt education",
-    "Votus", "Votus.One", "Motus Mentor", "August AI", "prompt promotions",
-    "EVOs", "learning journey", "reflection", "Look Within",
+    "Votus", "Votus.One", "Motus Mentor", "August", "Davara", "prompt promotions",
+    "EVOs", "learning journey", "reflection", "Fira", "inner fire",
   ],
   authors: [
     { name: "August James", url: "https://x.com/BuiltByAugust" },
-    { name: "Kristina Roll", url: "https://www.linkedin.com/in/kristina-roll-2135b4114/" },
   ],
   creator: "August James",
   publisher: "Votus.One",
@@ -24,7 +23,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     title: "PromptHero — The Universal Skill",
-    description: "Every prompt is a mirror. A universal skill for any AI agent that grows you into the author of better questions — with Chapters, Badges, Prompt Promotions, and EVOs. Copy it. Install it. Look Within.",
+    description: "Every prompt is a mirror. A universal skill for any AI agent that grows you into the author of better questions — with Chapters, Badges, Prompt Promotions, and EVOs. Copy it. Install it. Find Strength From Within.",
     url: "https://Votus.One",
     siteName: "Votus.One",
     images: [{

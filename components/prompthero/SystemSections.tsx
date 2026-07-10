@@ -1,10 +1,11 @@
 import Reveal from "@/components/Reveal";
+import ArmoniaSecret from "./ArmoniaSecret";
 import { dim, mid, faint, cyan, gold, kickerStyle, h2Style, bodyStyle, sectionStyle, columnStyle } from "./theme";
 
 const LOOP = [
   ["Observe", "Your prompt is quoted back to you, verbatim. You almost never re-read your own asks. Seeing your own words is the first lesson."],
   ["Analyze", "Five dimensions, scored 1–10 — each score pointing at the exact sentence that earned it. Never in the abstract."],
-  ["Teach", "Exactly one lesson per review, proven with a Before / After rewrite of your own prompt. Plus one Spark — a tip you can reuse tomorrow."],
+  ["Teach", "Exactly one lesson per review, proven with a Before / After rewrite of your own prompt. Plus one Init — a tip you can reuse tomorrow."],
   ["Reflect", "The Mirror: what this prompt reveals about how you think, what you value, what you trust yourself with — and one hard question worth sitting with."],
   ["Record", "Everything is written to your journey — a ledger, a journal, a mirror. Local. Human-readable. Yours."],
   ["Celebrate", "Badges, Prompt Promotions, Chapters, EVOs — awarded with ceremony and total specificity. Never inflated."],
@@ -27,19 +28,21 @@ const LEVERAGES = [
 ];
 
 const RANKS: [string, string][] = [
-  ["Spark Seeker", "The journey begins. Everyone starts here — that is the point."],
-  ["Apprentice of Asking", "Ten prompts reviewed. You revise when the mirror asks you to."],
-  ["Wordsmith", "Clarity becomes habit. The filler is disappearing from your asks."],
-  ["Context Architect", "Context and structure arrive by default, not by accident."],
-  ["Leverage Conductor", "You delegate outcomes. One ask of yours moves whole systems."],
-  ["Motus Mind", "Your prompts move people, not just machines. Depth compounds."],
-  ["PromptHero", "You teach it. Your asks are indistinguishable from leadership."],
+  ["Init", "The beginning. Your first prompt lights the record."],
+  ["Pronto", "You show up. Fast asks, honest reps, momentum building."],
+  ["Depth", "You name the goal behind the goal. The real problem, engaged."],
+  ["Motus", "Your prompts start to move things — code, plans, days."],
+  ["Movus", "Movement becomes pattern. Whole systems shift on one ask."],
+  ["Veras", "The truth-seeker. You ask for evidence and welcome the mirror."],
+  ["Motivus", "Your asks ignite others. Momentum spreads through you."],
+  ["PromptHero", "You steward the craft. Your asks are indistinguishable from leadership."],
 ];
 
 const BADGES = [
   "First Light", "The First Constraint", "Context Weaver", "The Socratic Turn",
-  "One Ask, One Aim", "The Refactorer", "Beautiful Brief", "The Delegator",
-  "The Verifier", "The Hard Question", "Return of the Hero", "The Teacher Appears",
+  "One Ask, One Aim", "The Refactorer", "Wordsmith", "Beautiful Brief",
+  "The Delegator", "Leverage Learner", "The Verifier", "The Hard Question",
+  "Return of the Hero", "The Steward Appears",
 ];
 
 function Section({ kicker, title, children }: { kicker: string; title: string; children: React.ReactNode }) {
@@ -181,24 +184,24 @@ export function Progression() {
 
       <Reveal>
         <div style={{ textAlign: "left", marginBottom: 48 }}>
-          <h3 style={{ fontSize: 15, letterSpacing: "0.3em", textTransform: "uppercase", color: cyan, marginBottom: 22 }}>⬆ Prompt Promotions — The Seven Ranks</h3>
+          <h3 style={{ fontSize: 15, letterSpacing: "0.3em", textTransform: "uppercase", color: cyan, marginBottom: 22 }}>⬆ Prompt Promotions — The Eight Ranks</h3>
           <div style={{ position: "relative", paddingLeft: 30 }}>
             <div aria-hidden style={{
               position: "absolute", left: 8, top: 10, bottom: 10, width: 1,
-              background: "linear-gradient(180deg, rgba(0,212,255,0.12), rgba(0,212,255,0.4) 70%, rgba(255,209,102,0.65))",
+              background: "linear-gradient(180deg, rgba(0,212,255,0.12), rgba(0,212,255,0.4) 65%, rgba(255,158,100,0.5) 88%, rgba(255,209,102,0.7))",
             }} />
             {RANKS.map(([r, c], i) => (
-              <div key={r} style={{ position: "relative", marginBottom: i === 6 ? 0 : 24 }}>
+              <div key={r} style={{ position: "relative", marginBottom: i === 7 ? 0 : 24 }}>
                 <span aria-hidden style={{
                   position: "absolute", left: -26, top: 6, width: 9, height: 9, borderRadius: "50%",
-                  background: i === 6 ? "rgba(255,209,102,0.9)" : `rgba(0,212,255,${0.25 + i * 0.1})`,
-                  boxShadow: i === 6 ? "0 0 14px rgba(255,209,102,0.6)" : `0 0 8px rgba(0,212,255,${0.15 + i * 0.06})`,
-                  animation: i === 6 ? "node-pulse 3.2s ease-in-out infinite" : undefined,
+                  background: i === 7 ? "rgba(255,209,102,0.9)" : `rgba(0,212,255,${0.22 + i * 0.09})`,
+                  boxShadow: i === 7 ? "0 0 14px rgba(255,209,102,0.6)" : `0 0 8px rgba(0,212,255,${0.14 + i * 0.05})`,
+                  animation: i === 7 ? "node-pulse 3.2s ease-in-out infinite" : undefined,
                 }} />
                 <p style={{
-                  fontSize: i === 6 ? 17 : 14.5, fontWeight: 300, letterSpacing: "0.12em", marginBottom: 4,
-                  color: i === 6 ? gold : `rgba(250,250,250,${0.45 + i * 0.07})`,
-                  textShadow: i === 6 ? "0 0 20px rgba(255,209,102,0.3)" : "none",
+                  fontSize: i === 7 ? 17 : 14.5, fontWeight: 300, letterSpacing: "0.12em", marginBottom: 4,
+                  color: i === 7 ? gold : `rgba(250,250,250,${0.42 + i * 0.07})`,
+                  textShadow: i === 7 ? "0 0 20px rgba(255,209,102,0.3)" : "none",
                 }}>
                   <span style={{ color: faint, fontSize: 11, letterSpacing: "0.2em", marginRight: 10 }}>0{i + 1}</span>
                   {r}
@@ -210,6 +213,9 @@ export function Progression() {
           <p style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.9, color: faint, marginTop: 18 }}>
             Promoted when the record shows it sustained — not glimpsed. The climb is the curriculum.
           </p>
+          <div style={{ textAlign: "center" }}>
+            <ArmoniaSecret />
+          </div>
         </div>
       </Reveal>
 
