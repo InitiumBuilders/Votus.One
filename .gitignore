@@ -32,3 +32,6 @@ yarn-error.log*
 # Local data
 data/*.json
 votus-one-data/
+
+# PromptHero — the journey is private by design
+.prompthero/
