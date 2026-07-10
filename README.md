@@ -107,6 +107,7 @@ votus-one/
 │   ├── motus/                  # The Brand — Motus & Gift Gear
 │   ├── ethos/                  # What We Stand For
 │   ├── allrise/                # The AllRise Experience
+│   ├── prompthero/             # PromptHero — The Universal Skill (see below)
 │   ├── start/                  # Register Your Votus Unit
 │   ├── votus-units/            # Browse all active units
 │   ├── u/[slug]/               # Individual unit pages (Votus.One/u/semble)
@@ -389,6 +390,25 @@ VOTUS_ADMIN_KEY=         # Admin operations key
 **Year 10** — Democracy looks different because we showed up.
 
 → **[Read NEXT_STEPS.md](./NEXT_STEPS.md)** for the full evolution roadmap, leverage points, and phase-by-phase build plan.
+
+---
+
+## ⚡ PromptHero — The Universal Skill
+
+> *Every prompt is a mirror. PromptHero teaches you to read it.*
+
+**[Votus.One/prompthero](https://Votus.One/prompthero)** — a universal skill for any AI agent
+(Claude, Davara, Hermes, Openclaw…) that studies how you prompt, teaches you the craft of
+asking one lesson at a time, and writes your growth as a book about you: auto-named
+**Chapters**, earned **Badges**, **Prompt Promotions** (the 7-rank ladder from Spark Seeker
+to PromptHero), and rare **EVOs** for the major evolutions.
+
+- The skill itself: [`skills/prompthero/SKILL.md`](./skills/prompthero/SKILL.md) (also installed at `.claude/skills/prompthero/` for Claude Code)
+- The founding prompt, preserved verbatim: [`skills/prompthero/INITIUM.md`](./skills/prompthero/INITIUM.md)
+- The page includes copyable build prompts for a personal PromptHero dashboard on
+  **Windows, Android, iPhone, macOS, Linux, or a team website**, plus **August AI — the Motus Mentor** coach prompt.
+
+*There Is Hope In The Hard Questions.*
 
 ---
 
