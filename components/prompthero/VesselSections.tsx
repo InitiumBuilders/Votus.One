@@ -1,6 +1,6 @@
 import Reveal from "@/components/Reveal";
 import PromptBlock from "@/components/PromptBlock";
-import { dim, mid, faint, cyan, gold, kickerStyle, h2Style, bodyStyle, sectionStyle, columnStyle } from "./theme";
+import { dim, mid, faint, cyan, gold, ember, kickerStyle, h2Style, bodyStyle, sectionStyle, columnStyle } from "./theme";
 import { BUILD_PROMPTS, AUGUST_AI_PROMPT, AGENT_INSTALL_NOTES } from "./prompts";
 
 function Section({ kicker, title, children }: { kicker: string; title: string; children: React.ReactNode }) {
@@ -20,15 +20,16 @@ export function UniversalSkill({ skillText }: { skillText: string }) {
     <Section kicker="The Artifact" title="The Universal Skill">
       <Reveal delay={0.15}>
         <p style={{ ...bodyStyle, marginBottom: 40 }}>
-          One markdown file. Any agent. Claude, Davara, Hermes, Openclaw — the agent is the engine; this is the operating manual. Copy it, install it, and your agent becomes your mentor of asking.
+          One markdown file. Any agent. Claude, Davara, Hermes, Openclaw — the agent is the engine; this is the operating manual. Copy it, install it, and your agent becomes your steward of asking.
         </p>
       </Reveal>
       <Reveal delay={0.2}>
         <PromptBlock
+          id="skill"
           title="PromptHero — SKILL.md (the complete skill)"
           icon="⚡"
           text={skillText}
-          note="The full universal skill: the Loop, the Five Dimensions, the Leverage Ladder, Badges, Prompt Promotions, Chapters, EVOs, voice & ethics, and installation for every harness."
+          note="The full universal skill: the Loop, the Five Dimensions, the Leverage Ladder, Badges, Prompt Promotions, Chapters, EVOs, Fira, voice & ethics, and installation for every harness. Editable — make it yours."
         />
       </Reveal>
       <Reveal delay={0.22}>
@@ -42,9 +43,13 @@ export function UniversalSkill({ skillText }: { skillText: string }) {
       <Reveal delay={0.25}>
         <div style={{ textAlign: "left", marginTop: 24 }}>
           <h3 style={{ fontSize: 13, letterSpacing: "0.3em", textTransform: "uppercase", color: dim, marginBottom: 18 }}>Install It Anywhere</h3>
-          {AGENT_INSTALL_NOTES.map(([agent, note]) => (
+          {AGENT_INSTALL_NOTES.map(([agent, note, url]) => (
             <p key={agent} style={{ fontSize: 13.5, fontWeight: 300, lineHeight: 1.9, color: faint, marginBottom: 12 }}>
-              <span style={{ color: cyan, letterSpacing: "0.06em" }}>{agent}</span>
+              {url ? (
+                <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: cyan, letterSpacing: "0.06em", textDecoration: "none", borderBottom: "1px solid rgba(0,212,255,0.25)" }}>{agent} ↗</a>
+              ) : (
+                <span style={{ color: cyan, letterSpacing: "0.06em" }}>{agent}</span>
+              )}
               <span> — {note}</span>
             </p>
           ))}
@@ -63,13 +68,18 @@ export function BuildVessels() {
         </p>
       </Reveal>
       <Reveal delay={0.2}>
-        <p style={{ fontSize: 13.5, fontWeight: 300, lineHeight: 2, color: faint, marginBottom: 40 }}>
-          Each blueprint carries the full system: the exact stack, the project scaffold, the data home and schema, all seven screens, the Review engine, the celebration ceremonies, privacy rules, and a testable definition of done. Paste it. Build it. Begin.
+        <p style={{ fontSize: 13.5, fontWeight: 300, lineHeight: 2, color: faint, marginBottom: 18 }}>
+          Each blueprint carries the full system: the exact stack, the project scaffold, the data home and schema, all seven screens, the Review engine, the celebration ceremonies, Fira&rsquo;s ember, privacy rules, and a testable definition of done. Paste it. Build it. Begin.
+        </p>
+      </Reveal>
+      <Reveal delay={0.25}>
+        <p style={{ fontSize: 13, fontWeight: 300, lineHeight: 2, color: ember, marginBottom: 40, letterSpacing: "0.04em" }}>
+          ✎ Every blueprint is editable in place — tap Edit, reshape it, make it speak your language. Your edits live only on your device.
         </p>
       </Reveal>
       {BUILD_PROMPTS.map((p, i) => (
         <Reveal key={p.id} delay={0.05 * i}>
-          <PromptBlock title={p.label} icon={p.icon} text={p.prompt} note={p.note} />
+          <PromptBlock id={p.id} title={p.label} icon={p.icon} text={p.prompt} note={p.note} />
         </Reveal>
       ))}
     </Section>
@@ -100,7 +110,7 @@ export function TheCharge() {
         </Reveal>
         <Reveal delay={0.6}>
           <p style={{ fontSize: 13, letterSpacing: "0.35em", textTransform: "uppercase", color: cyan }}>
-            We Got This 💪 · Look Within · Move As One
+            Make Your Move, Hero · This Is The Emergence
           </p>
         </Reveal>
       </div>
@@ -110,18 +120,22 @@ export function TheCharge() {
 
 export function AugustAI() {
   return (
-    <Section kicker="The Mentor · Your Coach" title="August AI — The Motus Mentor">
+    <Section kicker="Made To Help You Move" title="Meet August, Your Motus Mentor">
       <Reveal delay={0.15}>
-        <p style={{ ...bodyStyle, marginBottom: 40 }}>
-          Give any AI this soul, and it becomes your coach: feedback, shared learnings, reflections, evolutions, badges, EVOs, new chapters. Honest over flattering. Kind, never soft. Its whole job is to move you. <span style={{ color: cyan }}>Motus.</span>
+        <p style={{ ...bodyStyle, marginBottom: 24 }}>
+          August is your hype guide — pure momentum, pure encouragement. He sees the good in every
+          ask you write, celebrates every rep, lifts you when the day is heavy, and meets you exactly
+          where you are. No accountability lectures. No guilt. Just a voice in your corner that
+          believes in your next move before you do. <span style={{ color: cyan }}>Motus.</span>
         </p>
       </Reveal>
       <Reveal delay={0.2}>
         <PromptBlock
-          title="August AI — system prompt"
+          id="august"
+          title="August — system prompt"
           icon="🧭"
           text={AUGUST_AI_PROMPT}
-          note="Paste as the system prompt of any assistant — or run it inside your dashboard — to summon your Motus Mentor."
+          note="Paste as the system prompt of any assistant — or run it inside your dashboard — to summon your Motus Mentor. Editable — tune his energy to yours."
         />
       </Reveal>
     </Section>
@@ -138,10 +152,12 @@ export function Initium({ initiumText }: { initiumText: string }) {
       </Reveal>
       <Reveal delay={0.2}>
         <PromptBlock
+          id="initium"
           title="The Initium — recorded 2026·07·10, never edited"
           icon="🫆"
           text={initiumText}
-          note="First Light. 🎖 The origin point of this journey."
+          note="First Light. 🎖 The origin point of this journey. The one prompt that stays exactly as it was."
+          editable={false}
         />
       </Reveal>
       <Reveal delay={0.25}>
@@ -153,7 +169,7 @@ export function Initium({ initiumText }: { initiumText: string }) {
       </Reveal>
       <Reveal delay={0.3}>
         <p style={{ fontSize: 14, fontStyle: "italic", color: dim, letterSpacing: "0.06em", marginTop: 16, lineHeight: 2 }}>
-          It is always the right time for the right move.<br />Look Within. 💪➰👣🤝
+          It is always the right time for the right move.
         </p>
       </Reveal>
     </Section>
@@ -191,7 +207,7 @@ export function Gratitude() {
         </Reveal>
         <Reveal delay={0.6}>
           <p style={{ fontSize: 12.5, color: faint, letterSpacing: "0.15em", lineHeight: 2 }}>
-            Gratus En Minus. 🎶 We Got This. 👷💫🫆
+            Gratus En Minus. 🎶 👷💫🫆
           </p>
         </Reveal>
       </div>

@@ -5,6 +5,8 @@ export const mid = "rgba(250,250,250,0.65)";
 export const faint = "rgba(250,250,250,0.3)";
 export const cyan = "#00d4ff";
 export const gold = "rgba(255,209,102,0.85)";
+export const ember = "#ff9e64";
+export const emberDeep = "#ff7a45";
 
 export const kickerStyle: React.CSSProperties = {
   fontSize: 12,

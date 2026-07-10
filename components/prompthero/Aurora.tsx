@@ -24,7 +24,7 @@ export default function Aurora() {
       })} />
       <div className="aur" style={blob({
         bottom: "-28%", right: "-16%", width: "80vmax", height: "80vmax",
-        background: "radial-gradient(circle, rgba(255,209,102,0.05), transparent 60%)",
+        background: "radial-gradient(circle, rgba(255,158,100,0.055), transparent 60%)",
         animation: "aur-b 34s ease-in-out infinite",
       })} />
       <div className="aur" style={blob({

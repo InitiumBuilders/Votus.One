@@ -2,9 +2,11 @@ import fs from "fs";
 import path from "path";
 import Reveal from "@/components/Reveal";
 import SoundVeil from "@/components/prompthero/SoundVeil";
-import SparkMark from "@/components/prompthero/SparkMark";
+import EmberMark from "@/components/prompthero/EmberMark";
 import Starfield from "@/components/prompthero/Starfield";
+import Embers from "@/components/prompthero/Embers";
 import Aurora from "@/components/prompthero/Aurora";
+import FiraSection from "@/components/prompthero/FiraSection";
 import HeroActions from "@/components/prompthero/HeroActions";
 import PromptFooter from "@/components/prompthero/PromptFooter";
 import { dim, mid, faint, cyan, bodyStyle, sectionStyle, columnStyle, kickerStyle } from "@/components/prompthero/theme";
@@ -58,6 +60,7 @@ export default function Home() {
       }}>
         <Aurora />
         <Starfield />
+        <Embers />
 
         <div style={{ position: "relative", zIndex: 1 }}>
 
@@ -65,7 +68,7 @@ export default function Home() {
           <section style={{ ...sectionStyle, minHeight: "100dvh", justifyContent: "center", padding: "80px 24px" }}>
             <Reveal>
               <div style={{ marginBottom: 36, animation: "ph-float 6s ease-in-out infinite" }}>
-                <SparkMark size={64} />
+                <EmberMark size={64} />
               </div>
             </Reveal>
             <Reveal delay={0.15}>
@@ -77,7 +80,7 @@ export default function Home() {
                 fontWeight: 200,
                 letterSpacing: "0.14em",
                 marginBottom: 24,
-                background: "linear-gradient(105deg, #9beaff 0%, #00d4ff 42%, #ffd166 105%)",
+                background: "linear-gradient(105deg, #9beaff 0%, #00d4ff 38%, #ffd166 78%, #ff9e64 108%)",
                 WebkitBackgroundClip: "text",
                 backgroundClip: "text",
                 WebkitTextFillColor: "transparent",
@@ -118,7 +121,7 @@ export default function Home() {
               ))}
               <Reveal delay={0.5}>
                 <p style={{ fontSize: 13, letterSpacing: "0.4em", textTransform: "uppercase", color: faint, marginTop: 16 }}>
-                  Go Beyond · Look Within
+                  Go Beyond · This Is The Emergence
                 </p>
               </Reveal>
             </div>
@@ -131,6 +134,7 @@ export default function Home() {
           <UniversalSkill skillText={skill} />
           <BuildVessels />
           <AugustAI />
+          <FiraSection />
           <TheCharge />
           <Initium initiumText={initium} />
           <Gratitude />
