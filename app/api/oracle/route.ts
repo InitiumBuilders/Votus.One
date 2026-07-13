@@ -38,18 +38,28 @@ function cleanHistory(history: unknown): Turn[] {
       turns.push({ role, content: content.slice(0, 4000) });
     }
   }
-  // Keep the exchange alternating-friendly and bounded.
   return turns.slice(-16);
+}
+
+// The Messages API requires the first turn to be role "user". The client's
+// history opens with the oracle's greeting (an assistant turn), so drop any
+// leading assistant turns before appending the new question.
+function buildMessages(history: Turn[], message: string): Turn[] {
+  const h = [...history];
+  while (h.length && h[0].role === "assistant") h.shift();
+  return [...h, { role: "user", content: message }];
 }
 
 async function streamLocalReading(
   message: string,
   oracle: OracleId,
   send: (chunk: string) => void,
+  isClosed: () => boolean,
 ) {
   const markup = readingToMarkup(divine(message, oracle));
   const tokens = markup.match(/\s+|\S+/g) ?? [markup];
   for (const tok of tokens) {
+    if (isClosed()) return;
     send(tok);
     await sleep(16 + Math.random() * 22);
   }
@@ -70,47 +80,77 @@ export async function POST(req: Request) {
 
   const encoder = new TextEncoder();
   const hasKey = !!process.env.ANTHROPIC_API_KEY;
+  let closed = false;
+  const upstream = new AbortController();
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      // Every write and the final close are guarded: once the client
+      // disconnects, the controller is cancelled and any enqueue/close throws.
       const send = (chunk: string) => {
-        if (chunk) controller.enqueue(encoder.encode(chunk));
+        if (closed || !chunk) return;
+        try {
+          controller.enqueue(encoder.encode(chunk));
+        } catch {
+          closed = true;
+        }
+      };
+      const finish = () => {
+        if (closed) return;
+        closed = true;
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
       };
 
-      let usedLive = false;
-      if (hasKey) {
-        try {
-          const client = new Anthropic();
-          const messages = [...history, { role: "user" as const, content: message }];
-          const aiStream = client.messages.stream({
-            model: MODEL,
-            max_tokens: 700,
-            output_config: { effort: "low" },
-            system: systemFor(oracle),
-            messages,
-          });
-          for await (const event of aiStream) {
-            if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-              usedLive = true;
-              send(event.delta.text);
+      try {
+        let usedLive = false;
+        if (hasKey) {
+          try {
+            const client = new Anthropic();
+            const messages = buildMessages(history, message);
+            const aiStream = client.messages.stream(
+              {
+                model: MODEL,
+                max_tokens: 700,
+                output_config: { effort: "low" },
+                system: systemFor(oracle),
+                messages,
+              },
+              { signal: upstream.signal },
+            );
+            for await (const event of aiStream) {
+              if (closed) break;
+              if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+                usedLive = true;
+                send(event.delta.text);
+              }
             }
+          } catch {
+            /* the channel wavered — fall to the local weave below */
           }
-        } catch {
-          // The channel wavered — fall to the local weave, but only if the
-          // live model produced nothing at all (avoid a doubled reading).
-          if (!usedLive) {
-            try {
-              await streamLocalReading(message, oracle, send);
-            } catch {
-              /* the threads keep their silence */
-            }
+          // Only weave locally if the live model produced nothing (avoid a
+          // doubled reading), and only if the client is still listening.
+          if (!usedLive && !closed) {
+            await streamLocalReading(message, oracle, send, () => closed);
           }
+        } else {
+          await streamLocalReading(message, oracle, send, () => closed);
         }
-      } else {
-        await streamLocalReading(message, oracle, send);
+      } catch {
+        /* the threads keep their silence */
       }
-
-      controller.close();
+      finish();
+    },
+    cancel() {
+      closed = true;
+      try {
+        upstream.abort();
+      } catch {
+        /* */
+      }
     },
   });
 
