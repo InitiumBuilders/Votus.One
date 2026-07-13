@@ -29,14 +29,16 @@ const ORACLE_NAMES: Record<OracleId, string> = { nat: "Nat-Future", natalie: "Na
 const ORACLE_SIGILS: Record<OracleId, string> = { nat: "☉", natalie: "☾" };
 
 const SEGMENT_COLORS: Record<string, string> = {
-  opening: moon,
-  sight: moon,
-  current: teal,
-  thread: "rgba(190,167,255,0.95)",
-  counsel: gold,
-  omen: goldSoft,
-  anchor: "#ffe9b3", // the line you carry — lit brightest of all
-  bold: "#fff3d6", // the Bold Call — the brightest thread in the reading
+  opening: mid,
+  cast: moon, // the Futurecast — the centerpiece
+  truth: teal,
+  mark: "#fff3d6", // the dated call — the brightest thread
+  move: gold,
+  anchor: "#ffe9b3",
+  seal: goldSoft,
+  // legacy kinds from earlier sittings, still rendered kindly
+  sight: moon, current: teal, thread: "rgba(190,167,255,0.95)",
+  counsel: gold, omen: goldSoft, bold: "#fff3d6",
 };
 
 let nextId = 1;
@@ -146,6 +148,7 @@ export default function NatFutureExperience() {
       <CosmicVeil />
       <style>{`
         @keyframes nf-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes nf-cast { from { opacity: 0; transform: translateY(10px); filter: blur(5px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
         @keyframes nf-fade { from { opacity: 0; } to { opacity: 1; } }
         @keyframes nf-glow { 0%, 100% { box-shadow: 0 0 24px rgba(124,77,255,0.25), inset 0 0 12px rgba(124,77,255,0.08); } 50% { box-shadow: 0 0 44px rgba(255,209,102,0.3), inset 0 0 16px rgba(255,209,102,0.1); } }
         @keyframes nf-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
@@ -208,10 +211,9 @@ function Portal({ omen, onEnter }: { omen: string | null; onEnter: () => void })
         fontSize: "clamp(1rem, 3.6vw, 1.2rem)", color: mid, lineHeight: 1.9,
         maxWidth: 520, margin: "20px 0 0",
       }}>
-        The veil is thin here. Ask, and the oracle reads your tomorrow —
-        a Bold Call you can mark on the calendar, real-world currents,
-        systems threads, and one high‑leverage move.
-        Bring your plans or bring your heavy days; there is a lantern lit for both.
+        Ask, and the oracle casts your future in a few clear lines —
+        what&apos;s coming, what&apos;s already true, one dated call, one move.
+        Bring plans or heavy days.
         Always bright. Never unsure.
       </p>
 
@@ -440,43 +442,54 @@ function OracleReading({ msg, shown }: { msg: ChatMessage; shown: number }) {
         {ORACLE_SIGILS[who]} {ORACLE_NAMES[who]}
       </div>
       <div style={{
-        padding: "18px 20px", borderRadius: "4px 18px 18px 18px",
-        background: "rgba(20,16,43,0.6)", border: "1px solid rgba(124,77,255,0.22)",
-        backdropFilter: "blur(8px)", display: "flex", flexDirection: "column", gap: 14,
+        padding: "22px 22px 18px", borderRadius: "4px 20px 20px 20px",
+        background: "rgba(16,12,36,0.55)", border: "1px solid rgba(124,77,255,0.16)",
+        backdropFilter: "blur(10px)", display: "flex", flexDirection: "column", gap: 18,
       }}>
-        {reading.segments.slice(0, shown).map((seg, i) => (
-          <div
-            key={i}
-            style={{
-              animation: "nf-rise 0.6s ease both",
-              ...(seg.kind === "bold" && {
-                border: "1px solid rgba(255,209,102,0.45)",
-                borderRadius: 12,
-                padding: "12px 14px",
-                background: "rgba(255,209,102,0.06)",
-                boxShadow: "0 0 24px rgba(255,209,102,0.08) inset",
-              }),
-            }}
-          >
-            {seg.label && (
+        {reading.segments.slice(0, shown).map((seg, i) => {
+          // Widened: sittings saved before V5 carry legacy kinds (sight/omen/bold).
+          const kind = seg.kind as string;
+          const isMark = kind === "mark" || kind === "bold";
+          const isCast = kind === "cast" || kind === "sight";
+          const isSeal = kind === "seal" || kind === "omen";
+          return (
+            <div
+              key={i}
+              style={{
+                animation: "nf-cast 0.8s ease both",
+                ...(isMark && {
+                  border: "1px solid rgba(255,209,102,0.4)",
+                  borderRadius: 14,
+                  padding: "12px 16px",
+                  background: "rgba(255,209,102,0.05)",
+                  boxShadow: "0 0 24px rgba(255,209,102,0.07) inset",
+                }),
+              }}
+            >
+              {seg.label && (
+                <div style={{
+                  fontSize: 9.5, letterSpacing: "0.34em", textTransform: "uppercase",
+                  color: SEGMENT_COLORS[seg.kind] ?? dim, opacity: isMark ? 0.95 : 0.7,
+                  marginBottom: 8, fontFamily: sans,
+                }}>
+                  {isMark ? "⚡ " : ""}{seg.label}
+                </div>
+              )}
               <div style={{
-                fontSize: 9.5, letterSpacing: "0.32em", textTransform: "uppercase",
-                color: SEGMENT_COLORS[seg.kind] ?? dim, opacity: seg.kind === "bold" ? 0.95 : 0.75,
-                marginBottom: 6, fontFamily: sans,
+                fontFamily: serif,
+                fontSize: isCast ? 17.5 : 15,
+                lineHeight: isCast ? 1.9 : 1.75,
+                whiteSpace: "pre-line",
+                color: SEGMENT_COLORS[seg.kind] ?? moon,
+                fontStyle: isSeal || seg.kind === "opening" ? "italic" : "normal",
+                opacity: seg.kind === "opening" ? 0.85 : 1,
+                textShadow: isCast ? "0 0 30px rgba(124,77,255,0.2)" : isMark ? "0 0 18px rgba(255,209,102,0.22)" : "none",
               }}>
-                {seg.kind === "bold" ? "⚡" : "─"} {seg.label} {seg.kind === "bold" ? "⚡" : "─"}
+                {seg.text}
               </div>
-            )}
-            <div style={{
-              fontFamily: serif, fontSize: 15.5, lineHeight: 1.85,
-              color: SEGMENT_COLORS[seg.kind] ?? moon,
-              fontStyle: seg.kind === "omen" ? "italic" : "normal",
-              textShadow: seg.kind === "bold" ? "0 0 18px rgba(255,209,102,0.25)" : "none",
-            }}>
-              {seg.text}
             </div>
-          </div>
-        ))}
+          );
+        })}
         {complete && reading.segments.length > 2 && (
           <div style={{ animation: "nf-fade 1s ease both", display: "flex", alignItems: "center", gap: 8, marginTop: 2, paddingTop: 10, borderTop: "1px solid rgba(124,77,255,0.15)" }}>
             <span style={{ color: gold, fontSize: 13 }}>{reading.sigil}</span>
@@ -500,7 +513,7 @@ function Divining({ oracle }: { oracle: OracleId }) {
         backgroundSize: "200% 100%", backgroundClip: "text", WebkitBackgroundClip: "text",
         color: "transparent", animation: "nf-shimmer 2.2s linear infinite",
       }}>
-        {oracle === "nat" ? "Nat-Future is reading the threads…" : "Natalie is drawing your thread from the weave…"}
+        {oracle === "nat" ? "Nat-Future is casting…" : "Natalie is casting your thread…"}
       </span>
     </div>
   );
