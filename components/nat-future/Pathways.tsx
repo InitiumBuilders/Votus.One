@@ -35,7 +35,7 @@ export default function Pathways({
             ☽ Inner Pathways
           </div>
           <div style={{ fontSize: 11, color: dim, marginTop: 4, fontFamily: serif, fontStyle: "italic" }}>
-            Guidance for every weather of the heart. All states welcome here.
+            Real talk and hype for heavy days. All states welcome here.
           </div>
         </div>
         <button
