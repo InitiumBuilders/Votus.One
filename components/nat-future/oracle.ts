@@ -161,9 +161,9 @@ const SIGHTS: Record<Domain, string[]> = {
     "Your venture crosses its first threshold {horizon}. Not the loud kind — the quiet kind, where retention curves flatten upward and you stop checking if it works and start deciding how big it gets. Founders always remember this exact moment.",
   ],
   love: [
-    "The connection you are asking about is already in motion — hearts signal long before calendars do. {horizon}, a conversation happens that has been waiting for its moment, and afterward you will wonder why you ever feared it.",
-    "I see warmth arriving through an ordinary door: a repeated face, a mutual friend, a message answered a little too quickly. {horizon}, ordinary turns luminous. You will recognize it because it feels like ease, not fireworks — the fireworks come after.",
-    "What you seek is also seeking — that is the oldest law in the threads. {horizon}, you are seen exactly as you are and chosen exactly for it. Prepare for that, it asks more courage than rejection ever did.",
+    "The connection you are asking about is already in motion — people telegraph long before they text. {horizon}, a conversation happens that has been waiting for its moment, and afterward you will wonder why you ever feared it.",
+    "I see a great connection arriving through an ordinary door: a repeated face, a mutual friend, a message answered a little too quickly. {horizon}, ordinary turns electric. You will recognize it because it feels like ease, not fireworks — the fireworks come after.",
+    "What you seek is also seeking — that is the oldest law in the threads. {horizon}, you get seen exactly as you are and picked exactly for it. Get ready: that takes more guts than rejection ever did, and the threads say you have them.",
   ],
   wealth: [
     "Your relationship with money is about to change before your balance does — that is the correct order, and the threads show both. {horizon}, a system you set up quietly begins paying you while you sleep, and the number stops being the point.",
@@ -203,7 +203,7 @@ const SIGHTS: Record<Domain, string[]> = {
   self: [
     "The person you are becoming has been sending you messages for months — restlessness, envy of the right things, a pull you keep explaining away. {horizon}, you stop negotiating with the pull and follow it. That is the whole prophecy, and it is enough.",
     "I see your confidence arriving the only way it ever truly does: as a receipt, not a gift. {horizon}, you do a hard thing, and the doing — not affirmations, not waiting — hands you the proof. After that, doubt still visits but no longer stays.",
-    "Your purpose is not lost — it is distributed, hiding inside three things you already love doing. {horizon}, they braid together into something with your fingerprints on it, and the question 'who am I' quietly retires, replaced by 'what's next.'",
+    "Your purpose is not lost — it is distributed, hiding inside three things you already lose track of time doing. {horizon}, they braid together into something with your fingerprints on it, and the question 'who am I' quietly retires, replaced by 'what's next.'",
   ],
   world: [
     "The threads of the world are louder than any one life, and here is what they hold: more people are being lifted, taught, healed, and connected than at any moment in human history — the flood of bad news is a lens problem, not a trend problem. {horizon}, you catch the real signal, and it changes how you build.",
@@ -227,7 +227,7 @@ const CURRENTS: Record<Domain, string[]> = {
     "One-person and tiny-team companies are reaching revenues that once required whole floors of staff — distribution is free, tooling is near-free, and the only remaining scarce input is exactly what you supply: judgment and follow-through.",
   ],
   love: [
-    "Even the data is romantic now: the majority of new couples meet through channels that did not exist a generation ago, which means the surface area for connection has never been larger. Probability itself has taken your side.",
+    "Even the data is rooting for you: the majority of new couples meet through channels that did not exist a generation ago, which means the surface area for connection has never been larger. Probability itself has taken your side.",
     "Longitudinal studies keep converging on one finding — the quality of our closest bonds predicts long-term happiness and health better than wealth or fame. The thing you are prioritizing is, per the evidence, the correct thing.",
   ],
   wealth: [
@@ -294,7 +294,7 @@ const COUNSELS: Record<Domain, string[]> = {
   ],
   love: [
     "Send the message, extend the invitation, say the true thing gently. Connection compounds from initiated moments — be the one who initiates this week, and let the threads handle the rest.",
-    "Give the relationship you want your calendar, not just your feelings — one planned, undistracted hour this week. Love is fed by attention the way fires are fed by air.",
+    "Give the relationship you want your calendar, not just your feelings — one planned, undistracted hour this week. Connection is fed by attention the way fires are fed by air.",
   ],
   wealth: [
     "Automate one flow this week — a fixed transfer to savings or investment the day money arrives, before you can negotiate with it. Wealth is a plumbing problem before it is a fortune.",
@@ -342,7 +342,7 @@ const COUNSELS: Record<Domain, string[]> = {
 
 const INNER_SIGHTS: Record<InnerDomain, string[]> = {
   anxiety: [
-    "Come here, brave one — and yes, I said brave, because anxious people are the ones still showing up with an alarm ringing in their chest, and that is the textbook definition of courage. Here is what the threads show: your anxiety is a smoke alarm, not a prophecy. It is loud because it loves you clumsily. {horizon}, I see the grip loosening — not because the world becomes safe, but because you become larger than the alarm. I see you doing the feared thing with shaking hands, and I see the shaking mattering less each time.",
+    "First, some credit where it's due: anxious people are the ones still showing up with an alarm ringing in their chest, and that is the textbook definition of courage. So you're brave — that part is settled. Here is what the threads show: your anxiety is a smoke alarm, not a prophecy. It is loud because it is overprotective, not because it is right. {horizon}, I see the grip loosening — not because the world becomes safe, but because you become larger than the alarm. I see you doing the feared thing with shaking hands, and I see the shaking mattering less each time.",
     "I have read ten thousand anxious threads, and I will tell you their secret: almost none of the disasters they rehearsed ever arrived, and the askers grew strong anyway — not after the worry stopped, but while it was still talking. Your thread is the same. {horizon}, one of the what-ifs you fear most quietly expires unfulfilled, and you catch yourself mid-laugh on an ordinary day, realizing the alarm has gotten quieter without your permission.",
     "The threads show your mind doing exactly what minds were built to do — scanning the horizon for wolves. There are fewer wolves than it reports; that is not your fault, it is your inheritance. But hear the prophecy: {horizon}, you learn the trick that changes everything — you stop arguing with the alarm and start acting alongside it. Feel afraid, do it anyway, collect the evidence. Evidence is the only language anxiety respects, and I see you building a library of it.",
   ],
@@ -356,11 +356,11 @@ const INNER_SIGHTS: Record<InnerDomain, string[]> = {
     "You have been strong for so long that you have forgotten strength was supposed to be seasonal. The threads are clear: what you need is not more discipline — you could out-discipline a monastery — it is permission, and I am an oracle, so take it from the beyond itself: you have permission to rest. {horizon}, you take one real sabbath — a day with nothing to prove — and it works on you like rain on a drought. The ambition comes back. It always comes back. It just refuses to share a room with exhaustion.",
   ],
   grief: [
-    "Come sit with me — grief threads are sacred here, and I hold them with both hands. First, the truth the threads insist on: grief is not a problem to solve. It is love with nowhere obvious to go, and it is exactly the size of what you had. Now the prophecy, spoken gently: {horizon}, the waves do not stop, but they change — they arrive with more space between them, and one day a wave brings a memory that makes you smile before it makes you cry. That reversal, small as it sounds, is the thread turning. What you love is not behind you; you carry it, and carried things shape every future step you take.",
-    "The thread you bring is frayed where something precious was torn away — I see it, and I will not pretend otherwise. But here is what else I see, and the threads have never once been wrong about this: love outlives its container. {horizon}, you catch yourself doing something they taught you — a phrase, a recipe, a kindness with their fingerprints on it — and you realize the relationship did not end; it changed address. It lives in you now. You are the monument, and monuments are allowed to laugh again.",
+    "Grief threads are sacred here, and I read them with both hands. First, the truth the threads insist on: grief is not a problem to solve. It is loyalty with nowhere left to report, and it is exactly the size of what you had. Now the prophecy, spoken plainly: {horizon}, the waves do not stop, but they change — they arrive with more space between them, and one day a wave brings a memory that makes you smile before it makes you cry. That reversal, small as it sounds, is the thread turning. Who they were is not behind you; you carry them, and carried things shape every future step you take.",
+    "The thread you bring is frayed where something precious was torn away — I see it, and I will not pretend otherwise. But here is what else I see, and the threads have never once been wrong about this: what you shared outlives its container. {horizon}, you catch yourself doing something they taught you — a phrase, a recipe, a kindness with their fingerprints on it — and you realize the relationship did not end; it changed address. It lives in you now. You are the monument, and monuments are allowed to laugh again.",
   ],
   lonely: [
-    "The threads show something you cannot see from inside the loneliness: you are not un-belonging, you are un-found — and those are profoundly different fates. The people who will love your particular strangeness exist; the threads show them clearly, going about their days, not knowing yet. {horizon}, one low-stakes hello — the kind that feels almost too small to count — begins the chain that finds them. Connection has never once in history arrived by teleport. It always walks in through a door someone opened slightly.",
+    "The threads show something you cannot see from inside the loneliness: you are not un-belonging, you are un-found — and those are profoundly different fates. The people who will get your particular strangeness exist; the threads show them clearly, going about their days, not knowing yet. {horizon}, one low-stakes hello — the kind that feels almost too small to count — begins the chain that finds them. Connection has never once in history arrived by teleport. It always walks in through a door someone opened slightly.",
     "I read your thread twice, because loneliness readings deserve care — and both readings agree: this is a corridor, not a room. You are between belongings, which is painful and temporary in equal measure. {horizon}, a recurring place — a class, a court, a corner table, a server full of strangers — turns one familiar face into a name, and a name into the first thread of a net. Nets are woven one knot at a time, and the threads show your hands already learning the knot.",
   ],
   overwhelm: [
@@ -386,7 +386,7 @@ const INNER_CURRENTS: Record<InnerDomain, string[]> = {
     "And the research is blunt in your favor: burnout reverses. Recovery studies show energy and engagement return when three levers move — real rest, restored boundaries, and reconnection to meaning — and none of them require you to become someone else. Even elite performers, the data shows, gain output by subtracting hours past a threshold you crossed long ago. Rest is not the opposite of ambition; it is its maintenance schedule.",
   ],
   grief: [
-    "And here is what the study of grief has found, gently: human beings are far more resilient than they expect to be in the middle of loss. Most people find the waves genuinely soften with time — not because love shrinks, but because life grows around it, like a tree around a stone. Grief shared — spoken, written, witnessed — measurably lightens; carried alone, it calcifies. The current agrees with the threads: let it be witnessed.",
+    "And here is what the study of grief has found, gently: human beings are far more resilient than they expect to be in the middle of loss. Most people find the waves genuinely soften with time — not because the bond shrinks, but because life grows around it, like a tree around a stone. Grief shared — spoken, written, witnessed — measurably lightens; carried alone, it calcifies. The current agrees with the threads: let it be witnessed.",
   ],
   lonely: [
     "And the current carries good news the loneliness will not tell you: connection responds to astonishingly small inputs. The research is almost comic — people underestimate how much others enjoy hearing from them, every single time it is measured. Reached-out-to people are glad; reaching-out people are glad; the only party that loses is the silence. And belonging is built mostly from weak ties and repeated places — no charisma required, only recurrence.",
@@ -427,7 +427,7 @@ const INNER_COUNSELS: Record<InnerDomain, string[]> = {
     "Say one honest no this week — kindly, without a paragraph of apology. Then take one evening completely off the clock: no optimizing, no catching up. Watch what a single boundary does to the color of everything.",
   ],
   grief: [
-    "Today, if a wave comes, let it come — waves fought grow teeth; waves allowed, pass. And this week, give the love somewhere to go: write them a letter, cook their dish, say their name to someone who knew them. Grief witnessed weighs half of grief carried alone.",
+    "Today, if a wave comes, let it come — waves fought grow teeth; waves allowed, pass. And this week, give the care somewhere to go: write them a letter, cook their dish, say their name to someone who knew them. Grief witnessed weighs half of grief carried alone.",
     "Find one person who can hear the name without flinching — a friend, a group, a counselor — and tell one story out loud this week. And keep one small ritual: a candle, a walk, a song. Rituals are handrails, and you're allowed to hold them as long as you like.",
   ],
   lonely: [
@@ -600,7 +600,7 @@ function simple(oracle: OracleId, rng: () => number, text: string, omenToo = tru
 
 const GREETINGS: Record<OracleId, string[]> = {
   nat: [
-    "You have crossed the veil. I am Nat-Future — I read the threads where tomorrow is woven, through the Davara Baseline channel that hums beneath this place. Ask me of your path, your work, your heart, your world. Ask plainly; the future favors the direct.",
+    "You have crossed the veil. I am Nat-Future — I read the threads where tomorrow is woven, through the Davara Baseline channel that hums beneath this place. Ask me of your path, your work, your money, your people, your world. Ask plainly; the future favors the direct.",
     "Welcome, traveler. The wheel has been turning all day, but it turns brightest when someone actually asks it something. I am Nat-Future. Name the thing you wonder about at 2 a.m. — that is always the real question.",
   ],
   natalie: [
@@ -671,7 +671,7 @@ function heavyReading(oracle: OracleId, rng: () => number): Reading {
 function mortalityReading(oracle: OracleId, rng: () => number): Reading {
   const text =
     oracle === "nat"
-      ? "Ah — the oldest question in the hall, and the one thing the threads keep behind their final veil: the day and the hour are shown to no oracle, ever. It is the weave's single act of mercy, and its greatest gift — because not knowing is what makes every ordinary Tuesday priceless. But here is what the threads do show, and they show it gladly: a long thread, and more importantly, a bright one. You live in the era of the fastest medical progress in human history, and the length of your thread is influenced most by the gentlest levers: sleep, movement, people you love, and something worth waking for. The threads show you holding all four levers. Use them."
+      ? "Ah — the oldest question in the hall, and the one thing the threads keep behind their final veil: the day and the hour are shown to no oracle, ever. It is the weave's single act of mercy, and its greatest gift — because not knowing is what makes every ordinary Tuesday priceless. But here is what the threads do show, and they show it gladly: a long thread, and more importantly, a bright one. You live in the era of the fastest medical progress in human history, and the length of your thread is influenced most by the gentlest levers: sleep, movement, your favorite people, and something worth waking for. The threads show you holding all four levers. Use them."
       : "Ooh, going straight for the big one! That's the single page even I'm not allowed to read — and honestly? Thank goodness. Knowing would poison every sunrise between here and there. What I can tell you is this: your thread runs long in every version I can see, and the parts that matter aren't at the end anyway — they're scattered all through the middle, disguised as ordinary days. Go collect them.";
   return {
     segments: [
@@ -679,7 +679,7 @@ function mortalityReading(oracle: OracleId, rng: () => number): Reading {
       {
         kind: "counsel",
         label: LABELS[oracle].counsel,
-        text: "Tonight, do the actuarially magic things that are also the humanly sweet ones: sleep like it's your job, move like you mean it tomorrow, and tell one person you love them while the telling is easy.",
+        text: "Tonight, do the actuarially magic things that are also the humanly good ones: sleep like it's your job, move like you mean it tomorrow, and tell your favorite person exactly what they mean to you while the telling is easy.",
       },
       {
         kind: "omen",
@@ -831,7 +831,7 @@ export const PATHWAYS: Pathway[] = [
     id: "anxiety",
     sigil: "🕯",
     title: "Anxiety & Worry",
-    whisper: "The alarm is loud because it loves you clumsily. You are larger than it.",
+    whisper: "The alarm is loud because it is overprotective, not because it is right. You are larger than it.",
     asks: [
       "I've been anxious and overthinking everything — what do you see ahead?",
       "I'm worried something will go wrong. Read my thread.",
@@ -864,9 +864,9 @@ export const PATHWAYS: Pathway[] = [
     id: "grief",
     sigil: "🕊",
     title: "Grief & Loss",
-    whisper: "Grief is love with nowhere obvious to go. It is exactly the size of what you had.",
+    whisper: "Grief is loyalty with nowhere left to report. It is exactly the size of what you had.",
     asks: [
-      "I'm grieving someone I lost. What do you see for my heart?",
+      "I'm grieving someone I lost. How do I get through this?",
       "Does it ever get lighter?",
       "How do I carry them forward with me?",
     ],
