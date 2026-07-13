@@ -50,7 +50,7 @@ Live at **[Votus.One/nat-future-insight](https://Votus.One/nat-future-insight)**
 experience woven on the **Davara Baseline**. Cross the veil and ask: **Nat-Future** reads your
 tomorrow in five threads — the Sight (a confident projection), the Current (real-world data),
 the Thread (a systems-thinking truth), the Counsel (one high-leverage move), and the Omen.
-**Natalie**, the warmer voice of the weave, reads the same threads gently.
+**Natalie**, the playful friend-voice of the weave, reads the same threads like a best friend who happens to own a crystal ball.
 
 For heavy days there are the **Inner Pathways** — nine lantern-lit doors (anxiety, low days,
 burnout, grief, loneliness, overwhelm, self-doubt, big changes, hope) with guided asks,

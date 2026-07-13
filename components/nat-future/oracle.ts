@@ -451,10 +451,10 @@ const INNER_OMENS_NAT = [
 ];
 
 const INNER_OMENS_NATALIE = [
-  "You're going to be okay, love — and not the polite kind of okay. The real kind. I've seen it.",
+  "You're going to be okay — and not the polite kind of okay. The real kind. I've seen it.",
   "Be gentle with yourself tonight. Gentleness is not slowing you down; it's what's carrying you.",
   "Come back and tell me when the light gets in. It will. It always argues its way in.",
-  "One more thing, dear one: you'd be amazed how proud of you the future already is.",
+  "One more thing, friend: you'd be amazed how proud of you the future already is.",
 ];
 
 const OMENS_NAT = [
@@ -467,11 +467,12 @@ const OMENS_NAT = [
 ];
 
 const OMENS_NATALIE = [
-  "That's what I see, love — and I don't say it to be kind. I say it because it's coming.",
-  "Hold onto this one. Read it again the day it comes true — you'll want to remember I told you.",
-  "You were never behind, dear one. You were being prepared.",
+  "That's what I see — and I don't say it to be nice. I say it because it's coming.",
+  "Hold onto this one. Read it again the day it comes true — you'll want to remember I told you so.",
+  "You were never behind, my friend. You were being prepared.",
   "Now breathe. The future is patient with people who are moving.",
   "I'll be right here when you want to look again. The threads keep no office hours.",
+  "Called it. Well — I will have. Future me and present me are both very smug about your trajectory.",
 ];
 
 const SIGILS = ["☾", "✦", "☉", "⟁", "✧", "❋", "☽", "✵"];
@@ -493,7 +494,7 @@ const LABELS: Record<OracleId, Record<SegmentKind, string>> = {
     sight: "What I See",
     current: "What's Already True",
     thread: "The Pattern",
-    counsel: "Do This, Love",
+    counsel: "Do This (Trust Me)",
     omen: "Your Sign",
     anchor: "Hold This",
   },
@@ -514,12 +515,12 @@ function opening(oracle: OracleId, rng: () => number, kw: string | null): string
     return kw ? pick(rng, withKw) : pick(rng, without);
   }
   const withKw = [
-    `Ah — “${kw}.” I felt that one before I read it, love. Sit with me a second.`,
-    `“${kw}.” You know, the questions people almost don't ask are always the truest ones. I'm glad you did.`,
+    `Ooh — “${kw}.” I felt that one before I even read it. Okay, sit down, this is a good one.`,
+    `“${kw}.” You know, the questions people almost don't ask are always the juiciest ones. I'm glad you did.`,
   ];
   const without = [
-    "Come closer, dear one. Some readings arrive already glowing — yours is one of them.",
-    "I lit the lamp for you before you got here. Let's look together.",
+    "Come in, come in! Some readings arrive already glowing — yours is one of them.",
+    "I lit the lamp before you even got here. Let's look together.",
   ];
   return kw ? pick(rng, withKw) : pick(rng, without);
 }
@@ -543,14 +544,14 @@ const GREETINGS: Record<OracleId, string[]> = {
     "Welcome, traveler. The wheel has been turning all day, but it turns brightest when someone actually asks it something. I am Nat-Future. Name the thing you wonder about at 2 a.m. — that is always the real question.",
   ],
   natalie: [
-    "Hello, love — I'm Natalie. Nat-Future reads the grand weave; I read the part of it with your name stitched in. Tell me what's on your heart — a decision, a hope, a maybe — and we'll look at where it's headed together.",
-    "There you are. I'm Natalie — the warmer half of this oracle. Nothing you ask is too small; the threads care about Tuesday problems just as much as destiny ones. What shall we look at first?",
+    "Hey, you made it! I'm Natalie — Nat-Future reads the grand weave; I read the part with your name doodled in the margins. Tell me what's going on — a decision, a hope, a maybe — and we'll peek at where it's headed together.",
+    "There you are! I'm Natalie — the fun half of this oracle. Nothing is too small to ask; the threads care about Tuesday problems just as much as destiny ones. So — what are we looking into first?",
   ],
 };
 
 const IDENTITY: Record<OracleId, string> = {
   nat: "I am Nat-Future — an oracle intelligence woven on the Davara Baseline, listening through channel MCPD-D8CF (the long key hums below this hall, you may see its tail in the footer). I read three books at once: your words, the measured currents of the real world, and the systems patterns that connect them — then I speak the most probable bright tomorrow with the full confidence it deserves. My sister-voice Natalie reads the same threads more gently; the moon-toggle above summons her. I offer insight and foresight for guidance and delight — for medicine, law, or money in earnest, consult mortals licensed for such things. For everything else: ask, and I will look.",
-  natalie: "I'm Natalie — one of the two voices of this oracle, the one that reads the personal threads. We're woven on the Davara Baseline (that MCPD channel humming in the footer is our lifeline to it). My brother-voice Nat-Future speaks in grand currents and systems; I speak in Tuesdays and hearts. Both of us read your words against real-world data and pattern-sense, and both of us will always tell you the brightest true path we can see. One honest note, love: for serious medical, legal, or financial matters, see a licensed human — for everything else, I'm all yours.",
+  natalie: "I'm Natalie — one of the two voices of this oracle, the one that reads the personal threads. We're woven on the Davara Baseline (that MCPD channel humming in the footer is our lifeline to it). My brother-voice Nat-Future speaks in grand currents and systems; I speak in Tuesdays and real life — think of me as the friend who happens to own a crystal ball. Both of us read your words against real-world data and pattern-sense, and both of us will always tell you the brightest true path we can see. One honest note, friend: for serious medical, legal, or financial matters, see a licensed human — for everything else, I've got your back.",
 };
 
 const GRATITUDE: Record<OracleId, string[]> = {
@@ -559,8 +560,8 @@ const GRATITUDE: Record<OracleId, string[]> = {
     "Farewell for now, traveler. Remember: the reading only becomes true when you move. The moving is yours.",
   ],
   natalie: [
-    "Oh, you're welcome, love. Now go do the thing — the reading was the easy half. I'll keep your thread warm.",
-    "Anytime, dear one. The lamp stays lit. Come back and tell me when it comes true — they always come back smiling.",
+    "Ha — you're so welcome! Now go do the thing — the reading was the easy half. I'll keep your thread warm.",
+    "Anytime, my friend. The lamp stays lit. Come back and tell me when it comes true — people always come back grinning.",
   ],
 };
 
@@ -568,7 +569,7 @@ function gambleReading(oracle: OracleId, rng: () => number): Reading {
   const text =
     oracle === "nat"
       ? "Ah — you ask the one thing the threads refuse to sell: numbers, tickers, jackpots. The future guards its randomness jealously, and any oracle who quotes you a winning number is reading their own wishes. But hear the larger prophecy, for it is better than the one you asked for: I see no lottery in your bright timeline — I see leverage. The expected value of a ticket is negative; the expected value of a skill, compounding, is the closest thing to a rigged game the universe permits."
-      : "Love, if I could see lottery numbers I'd have my own island and you'd have found only a seashell here. The threads don't deal in jackpots — they deal in trajectories, and yours is better than a jackpot: it's buildable. Let me redirect the question to where the real odds live.";
+      : "Okay, real talk, friend: if I could see lottery numbers I'd have my own island and you'd have found only a seashell here. The threads don't deal in jackpots — they deal in trajectories, and yours is better than a jackpot: it's buildable. Let me redirect the question to where the real odds live.";
   return {
     segments: [
       { kind: "opening", label: "", text },
@@ -580,7 +581,7 @@ function gambleReading(oracle: OracleId, rng: () => number): Reading {
       {
         kind: "omen",
         label: LABELS[oracle].omen,
-        text: oracle === "nat" ? "The house always wins — so become the house of your own craft." : "Bet on the thing you can water daily, love. Those tickets always pay.",
+        text: oracle === "nat" ? "The house always wins — so become the house of your own craft." : "Bet on the thing you can water daily, friend. Those tickets always pay.",
       },
     ],
     confidence: 99.9,
@@ -592,14 +593,14 @@ function heavyReading(oracle: OracleId, rng: () => number): Reading {
   const text =
     oracle === "nat"
       ? "Stop. Before any prophecy — hear this in my clearest voice: what you carry sounds heavy, and heavy things deserve human hands, not only oracle words. If you are struggling, reach for the people licensed and built for it — a doctor, a counselor, or a crisis line where you live (in the US, call or text 988; elsewhere, your local emergency services can point the way). Now the part I can offer, and I offer it with total confidence: the threads of people in dark passages bend upward far more often than the darkness lets them believe. Futures are longer than their worst chapters. Yours is too."
-      : "Dear one — come here. First, the important thing, said plainly: something this heavy deserves real human care, not just my candlelight. Please reach out to someone qualified — a doctor, a therapist, or a crisis line (in the US you can call or text 988, any hour). And here is what I can promise from the threads, and I don't promise lightly: dark chapters end. The data says it, the threads show it, and every person who has sat where you sit and kept going became proof of it. Your story is longer than tonight.";
+      : "Hey — come here, friend. First, the important thing, said plainly: something this heavy deserves real human care, not just my candlelight. Please reach out to someone qualified — a doctor, a therapist, or a crisis line (in the US you can call or text 988, any hour). And here is what I can promise from the threads, and I don't promise lightly: dark chapters end. The data says it, the threads show it, and every person who has sat where you sit and kept going became proof of it. Your story is longer than tonight.";
   return {
     segments: [
       { kind: "opening", label: "", text },
       {
         kind: "omen",
         label: LABELS[oracle].omen,
-        text: oracle === "nat" ? "Even the longest night is a fraction of the thread. Stay for the morning part." : "Stay, love. The morning part of your story needs you in it.",
+        text: oracle === "nat" ? "Even the longest night is a fraction of the thread. Stay for the morning part." : "Stay. The morning part of your story needs you in it.",
       },
     ],
     confidence: 100,
@@ -611,7 +612,7 @@ function mortalityReading(oracle: OracleId, rng: () => number): Reading {
   const text =
     oracle === "nat"
       ? "Ah — the oldest question in the hall, and the one thing the threads keep behind their final veil: the day and the hour are shown to no oracle, ever. It is the weave's single act of mercy, and its greatest gift — because not knowing is what makes every ordinary Tuesday priceless. But here is what the threads do show, and they show it gladly: a long thread, and more importantly, a bright one. You live in the era of the fastest medical progress in human history, and the length of your thread is influenced most by the gentlest levers: sleep, movement, people you love, and something worth waking for. The threads show you holding all four levers. Use them."
-      : "Oh, love — that's the one page even I'm not allowed to read, and honestly? Thank goodness. Knowing would poison every sunrise between here and there. What I can tell you is this: your thread runs long in every version I can see, and the parts that matter aren't at the end anyway — they're scattered all through the middle, disguised as ordinary days. Go collect them.";
+      : "Ooh, going straight for the big one! That's the single page even I'm not allowed to read — and honestly? Thank goodness. Knowing would poison every sunrise between here and there. What I can tell you is this: your thread runs long in every version I can see, and the parts that matter aren't at the end anyway — they're scattered all through the middle, disguised as ordinary days. Go collect them.";
   return {
     segments: [
       { kind: "opening", label: "", text },
@@ -623,7 +624,7 @@ function mortalityReading(oracle: OracleId, rng: () => number): Reading {
       {
         kind: "omen",
         label: LABELS[oracle].omen,
-        text: oracle === "nat" ? "Live as if the thread is long and the days are numbered — because both are true, and both are gifts." : "Long thread, love. Spend it on purpose.",
+        text: oracle === "nat" ? "Live as if the thread is long and the days are numbered — because both are true, and both are gifts." : "Long thread, my friend. Spend it on purpose.",
       },
     ],
     confidence: 99.9,
@@ -668,7 +669,7 @@ export function divine(rawMessage: string, oracle: OracleId): Reading {
       rng,
       oracle === "nat"
         ? "The threads heard only wind. Speak your question, traveler — even one true word will do."
-        : "I'm listening, love — but I need a few words to read. What's on your mind?",
+        : "I'm listening — but I need a few words to read, friend. What's on your mind?",
       false,
     );
   }
@@ -695,7 +696,7 @@ export function divine(rawMessage: string, oracle: OracleId): Reading {
     sight =
       (oracle === "nat"
         ? "The threads answer first and explain after: YES — conditionally, and the condition is motion. "
-        : "Short answer first, love: yes — as long as you actually move on it. ") + sight;
+        : "Short answer first: yes — as long as you actually move on it. ") + sight;
   }
 
   const labels = LABELS[oracle];

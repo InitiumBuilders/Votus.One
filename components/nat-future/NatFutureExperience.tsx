@@ -375,7 +375,7 @@ function Chamber(props: {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onAsk(input); }
             }}
-            placeholder={oracle === "nat" ? "Ask the oracle of tomorrow…" : "Tell Natalie what's on your heart…"}
+            placeholder={oracle === "nat" ? "Ask the oracle of tomorrow…" : "Tell Natalie what's really going on…"}
             rows={1}
             enterKeyHint="send"
             style={{
