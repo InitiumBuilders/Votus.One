@@ -44,6 +44,22 @@ Your growth is written as it happens:
   iPhone app, Macintosh app, Linux app, or a team website**, and **August, the Motus
   Mentor**, a hype-guide coach prompt for any assistant
 
+## Nat-Future-Insight — The Oracle That Reads Tomorrow ✦
+
+Live at **[Votus.One/nat-future-insight](https://Votus.One/nat-future-insight)** — an oracle
+experience woven on the **Davara Baseline**. Cross the veil and ask: **Nat-Future** reads your
+tomorrow in five threads — the Sight (a confident projection), the Current (real-world data),
+the Thread (a systems-thinking truth), the Counsel (one high-leverage move), and the Omen.
+**Natalie**, the warmer voice of the weave, reads the same threads gently.
+
+For heavy days there are the **Inner Pathways** — nine lantern-lit doors (anxiety, low days,
+burnout, grief, loneliness, overwhelm, self-doubt, big changes, hope) with guided asks,
+evidence-backed encouragement, an Anchor line to carry, and crisis resources always one
+glance away. Every reading is deterministic: the same question through the same channel
+returns the same threads. Always bright. Never unsure. Mobile-first. Fully static.
+
+*Insight & foresight for guidance and delight — not medical, legal, or financial advice.*
+
 ## The Stack
 
 | Layer | Tech |
