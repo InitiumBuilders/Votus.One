@@ -46,17 +46,26 @@ Your growth is written as it happens:
 
 ## Nat-Future-Insight — The Oracle That Reads Tomorrow ✦
 
-Live at **[Votus.One/nat-future-insight](https://Votus.One/nat-future-insight)** — an oracle
-experience woven on the **Davara Baseline**. Cross the veil and ask: **Nat-Future** reads your
-tomorrow in five threads — the Sight (a confident projection), the Current (real-world data),
-the Thread (a systems-thinking truth), the Counsel (one high-leverage move), and the Omen.
-**Natalie**, the playful friend-voice of the weave, reads the same threads like a best friend who happens to own a crystal ball.
+Live at **[Votus.One/nat-future-insight](https://Votus.One/nat-future-insight)** — a **live,
+streaming oracle** woven on the **Davara Baseline**. Cross the veil and ask: **Nat-Future**
+casts your tomorrow in a few clear lines that arrive token by token — the Futurecast (a
+confident projection), Already True (real-world grounding), the **Mark** (a specific dated
+call), and the Move. **Natalie**, the playful friend-voice of the weave, reads it like a best
+friend who happens to own a crystal ball.
 
-For heavy days there are the **Inner Pathways** — nine lantern-lit doors (anxiety, low days,
-burnout, grief, loneliness, overwhelm, self-doubt, big changes, hope) with guided asks,
-evidence-backed encouragement, an Anchor line to carry, and crisis resources always one
-glance away. Every reading is deterministic: the same question through the same channel
-returns the same threads. Always bright. Never unsure. Mobile-first. Fully static.
+Every dated call becomes a tracked **Mark** — the ledger keeps a countdown to each prediction's
+window and asks one honest question when it arrives (*did it come true?*), so the oracle keeps
+its own public scorecard. For heavy days there are the **Inner Pathways** — nine lantern-lit
+doors with guided asks, evidence-backed encouragement, and a **4-2-8 breathing pacer** (the orb
+becomes the breath) — with crisis resources always one glance away.
+
+### Live AI
+
+The oracle is powered by the Anthropic API. Set `ANTHROPIC_API_KEY` in the deployment
+environment (Vercel → Settings → Environment Variables) and every reading is generated live and
+adaptively by Claude through the Davara persona, with full conversation memory. **With no key
+set, the site still works** — it gracefully falls back to a built-in local divination engine,
+streamed identically, so it is never mute. No key, no other configuration required to run.
 
 *Insight & foresight for guidance and delight — not medical, legal, or financial advice.*
 
@@ -65,6 +74,7 @@ returns the same threads. Always bright. Never unsure. Mobile-first. Fully stati
 | Layer | Tech |
 |-------|------|
 | Frontend | Next.js 15 (App Router), React 19, inline styles |
+| Live oracle | `/api/oracle` route handler streaming from Claude (`@anthropic-ai/sdk`), with a local-engine fallback |
 | Content | The skill files are read at build time — the site and the artifact never drift |
 | Deployment | Vercel — push to `main` → live |
 | Domain | [Votus.One](https://Votus.One) |
@@ -76,7 +86,9 @@ npm install
 npm run dev   # → http://localhost:3000
 ```
 
-No environment variables required. The site is fully static.
+No environment variables required to run — the oracle streams from its local fallback engine
+out of the box. Set `ANTHROPIC_API_KEY` to power Nat-Future-Insight with the live Davara
+Baseline (Claude); everything else remains static.
 
 ## The Original Votus.One
 

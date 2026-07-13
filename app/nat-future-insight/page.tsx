@@ -4,7 +4,7 @@ import NatFutureExperience from "../../components/nat-future/NatFutureExperience
 export const metadata: Metadata = {
   title: "Nat-Future-Insight — The Oracle That Reads Tomorrow",
   description:
-    "Cross the veil and ask. Nat-Future — an oracle woven on the Davara Baseline — reads your tomorrow with real-world currents, systems threads, and one high-leverage move. With Natalie — the playful friend-voice of the weave — and the Inner Pathways: real talk, hype, and guidance for anxiety, heavy days, and everything in between. Always bright. Never unsure.",
+    "Cross the veil and ask. Nat-Future — a live oracle woven on the Davara Baseline — reads your tomorrow in a few clear lines, streamed as it comes: what's coming, what's already true, and one dated call you can hold it to. With Natalie — the playful friend-voice of the weave — the Marks ledger that tracks every prediction, and the Inner Pathways for heavy days. Always bright. Never unsure.",
   keywords: [
     "Nat-Future-Insight", "oracle AI", "future insight", "foresight", "fortune teller AI",
     "Davara", "Davara Baseline", "Natalie AI", "systems thinking", "future projection",
