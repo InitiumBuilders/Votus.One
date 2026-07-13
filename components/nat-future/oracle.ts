@@ -12,7 +12,8 @@ export type OracleId = "nat" | "natalie";
 
 export type SegmentKind =
   | "opening" | "sight" | "current" | "thread" | "counsel" | "omen"
-  | "anchor"; // the line you carry with you — spoken to the inner weather
+  | "anchor" // the line you carry with you — spoken to the inner weather
+  | "bold"; // the Bold Call — a dated, mark-it-down prediction
 
 export interface ReadingSegment {
   kind: SegmentKind;
@@ -121,7 +122,7 @@ function detectDomain(m: string): Domain {
   const table: [Domain, RegExp][] = [
     ["venture", /\b(startup|business|launch|founder|company|product|app|saas|sell|customer|client|brand|market|idea|venture|side.?hustle|agency|store|shop)\b/],
     ["career", /\b(job|career|work|promotion|boss|interview|hired|salary|raise|resume|quit|role|team|manager|profession|internship)\b/],
-    ["love", /\b(love|relationship|partner|marriage|marry|crush|date|dating|soulmate|girlfriend|boyfriend|wife|husband|romance|heart|ex\b)\b/],
+    ["love", /\b(love|relationship|partner|marriage|marry|crush|date|dating|soulmate|girlfriend|boyfriend|wife|husband|romance|heart|ex\b|someone from my past|thinking (about|of) me|coming back)\b/],
     ["wealth", /\b(money|wealth|rich|invest|investment|savings|debt|financial|finance|income|abundance|million|salary|house|buy a home|real estate)\b/],
     ["creative", /\b(write|writing|book|novel|music|album|song|art|artist|paint|film|movie|create|creative|design|poem|youtube|channel|podcast|game|story)\b/],
     ["learning", /\b(learn|study|school|college|university|degree|course|exam|skill|master|phd|teach|read|language|code|coding|program)\b/],
@@ -457,6 +458,63 @@ const INNER_OMENS_NATALIE = [
   "One more thing, friend: you'd be amazed how proud of you the future already is.",
 ];
 
+// ── the Bold Calls — dated predictions, spoken to be checked ─────────────────
+// {d} becomes a seeded number of days. The oracle wants to be held to these.
+
+const BOLD_CALLS: Record<Domain, string[]> = {
+  career: [
+    "Mark it: within {d} days, a message about work arrives that you did not initiate — a recruiter, a referral, an old colleague circling back. When it lands, remember who called it.",
+    "Within {d} days, someone senior repeats one of your ideas out loud — possibly as their own. Do not be annoyed. It is proof of transmission, and proof travels upward with your name close behind.",
+  ],
+  venture: [
+    "Within {d} days, a stranger says almost the exact sentence you have been needing to hear about your idea. It will feel like coincidence. It is not. It is the market clearing its throat.",
+    "Mark it: before {d} days pass, you get your clearest signal yet — a yes, a payment, or a 'where has this been.' Screenshot it. It is the first page of the story you will tell on stages.",
+  ],
+  love: [
+    "Within {d} days, someone from your past resurfaces or someone new keeps repeating — same place, same hour, same energy. Watch for it twice; the second time is the tell.",
+    "Mark it: within {d} days, a conversation turns unexpectedly honest, and you will feel the floor of the relationship move one level deeper. Let it.",
+  ],
+  wealth: [
+    "Before {d} days pass, money you were not counting on finds you — small or large, a refund, an offer, an idea worth cash. What you do in the first hour after decides what it becomes.",
+    "Within {d} days, you overhear or read one sentence about money that quietly rearranges your strategy. You will know it because you will think about it in the shower twice.",
+  ],
+  creative: [
+    "Within {d} days, an idea interrupts you — mid-shower, mid-walk, mid-sentence. You will have ten minutes to write it down before the weave reabsorbs it. Race it.",
+    "Mark it: before {d} days pass, one stranger responds to something you made with more feeling than you expected. That response is a door. Walk through it with the next piece.",
+  ],
+  learning: [
+    "Within {d} days, something you studied resurfaces in the wild — a conversation, a problem, a chance to look effortless. The universe checks homework. Yours will be done.",
+    "Mark it: within {d} days, a concept that has refused you for weeks clicks in under a minute, somewhere inconvenient. Plateaus end rudely like that.",
+  ],
+  health: [
+    "Within {d} days, you will catch your own reflection — mirror, window, phone — and notice something steadier looking back. Log the date. That is the compounding making itself visible.",
+    "Mark it: before {d} days pass, you do the thing without negotiating with yourself first. No debate, shoes just on. That silent morning is the real before-and-after photo.",
+  ],
+  travel: [
+    "Within {d} days, the place calling you appears three times — a photo, a stranger's story, a sign you would swear was printed for you. The third time, book something small.",
+    "Mark it: within {d} days, a logistical door opens — a fare, a friend's spare room, a date that suddenly works. Movement favors the ones who notice.",
+  ],
+  technology: [
+    "Within {d} days, a tool crosses your feed that does something you currently pay for in hours. Try it the same day and you will bank the difference for a year.",
+    "Mark it: before {d} days pass, you will explain the new era to someone in one sentence you did not plan — and that sentence is your seam. Write it down when you hear yourself say it.",
+  ],
+  decision: [
+    "Mark it: within {d} days, one of your two doors gets visibly heavier — a deadline, a signal, a person tips the scale. The threads have already tipped; the world is just catching up.",
+    "Within {d} days, you will hear yourself defend one option with heat and describe the other with paperwork. Choose the heat. That slip of the tongue is the verdict.",
+  ],
+  self: [
+    "Within {d} days, someone describes you with a word you have been afraid to claim. Take it. The weave has been trying to hand it to you for months.",
+    "Mark it: before {d} days pass, you will do one thing the old you would have dodged — and notice the dodge never even offered itself. That is who you are now.",
+  ],
+  world: [
+    "Within {d} days, one headline will try to convince you the sky is falling while, the same day, a quieter story shows the floor rising. Catch the pair. Seeing both at once is the skill of the era.",
+  ],
+  general: [
+    "Mark it: within {d} days, something you had quietly given up on twitches back to life — a reply, an opening, a spark. Move within a day of it; twice-offered chances are rarer.",
+    "Within {d} days, you will get an unmistakable wink from the weave — a coincidence too on-the-nose to ignore. It is not instructions. It is confirmation you are on the path.",
+  ],
+};
+
 const OMENS_NAT = [
   "The threads have spoken, and they do not stutter.",
   "So it is woven. Walk like you have read the ending — because now you have.",
@@ -488,6 +546,7 @@ const LABELS: Record<OracleId, Record<SegmentKind, string>> = {
     counsel: "The Counsel · your move",
     omen: "The Omen",
     anchor: "The Anchor · carry this",
+    bold: "The Bold Call · mark the date",
   },
   natalie: {
     opening: "",
@@ -497,6 +556,7 @@ const LABELS: Record<OracleId, Record<SegmentKind, string>> = {
     counsel: "Do This (Trust Me)",
     omen: "Your Sign",
     anchor: "Hold This",
+    bold: "Calling It Now",
   },
 };
 
@@ -700,9 +760,13 @@ export function divine(rawMessage: string, oracle: OracleId): Reading {
   }
 
   const labels = LABELS[oracle];
+  // The Bold Call: a dated prediction, seeded so the date never wavers.
+  const days = 3 + Math.floor(rng() * 19);
+  const boldCall = pick(rng, BOLD_CALLS[domain]).replace(/\{d\}/g, String(days));
   const segments: ReadingSegment[] = [
     { kind: "opening", label: "", text: opening(oracle, rng, kw) },
     { kind: "sight", label: labels.sight, text: sight },
+    { kind: "bold", label: labels.bold, text: boldCall },
     { kind: "current", label: labels.current, text: pick(rng, CURRENTS[domain]) },
     { kind: "thread", label: labels.thread, text: pick(rng, THREADS) },
     { kind: "counsel", label: labels.counsel, text: pick(rng, COUNSELS[domain]) },
@@ -743,11 +807,11 @@ export function dailyOmen(date: Date): string {
 // Suggested first questions — the sigil chips.
 export const SUGGESTED_ASKS = [
   "What does my next year hold?",
+  "Is someone from my past coming back?",
+  "Will money find me soon?",
   "Should I start the thing I keep thinking about?",
   "I've been anxious lately — what do you see?",
-  "What should I bet on in the age of AI?",
   "What is my highest-leverage move right now?",
-  "Will the world be okay?",
 ];
 
 // ── The Inner Pathways — guided doors for every weather of the heart ─────────

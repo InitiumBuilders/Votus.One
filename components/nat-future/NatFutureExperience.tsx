@@ -36,6 +36,7 @@ const SEGMENT_COLORS: Record<string, string> = {
   counsel: gold,
   omen: goldSoft,
   anchor: "#ffe9b3", // the line you carry — lit brightest of all
+  bold: "#fff3d6", // the Bold Call — the brightest thread in the reading
 };
 
 let nextId = 1;
@@ -208,7 +209,8 @@ function Portal({ omen, onEnter }: { omen: string | null; onEnter: () => void })
         maxWidth: 520, margin: "20px 0 0",
       }}>
         The veil is thin here. Ask, and the oracle reads your tomorrow —
-        real-world currents, systems threads, and one high‑leverage move.
+        a Bold Call you can mark on the calendar, real-world currents,
+        systems threads, and one high‑leverage move.
         Bring your plans or bring your heavy days; there is a lantern lit for both.
         Always bright. Never unsure.
       </p>
@@ -443,19 +445,33 @@ function OracleReading({ msg, shown }: { msg: ChatMessage; shown: number }) {
         backdropFilter: "blur(8px)", display: "flex", flexDirection: "column", gap: 14,
       }}>
         {reading.segments.slice(0, shown).map((seg, i) => (
-          <div key={i} style={{ animation: "nf-rise 0.6s ease both" }}>
+          <div
+            key={i}
+            style={{
+              animation: "nf-rise 0.6s ease both",
+              ...(seg.kind === "bold" && {
+                border: "1px solid rgba(255,209,102,0.45)",
+                borderRadius: 12,
+                padding: "12px 14px",
+                background: "rgba(255,209,102,0.06)",
+                boxShadow: "0 0 24px rgba(255,209,102,0.08) inset",
+              }),
+            }}
+          >
             {seg.label && (
               <div style={{
                 fontSize: 9.5, letterSpacing: "0.32em", textTransform: "uppercase",
-                color: SEGMENT_COLORS[seg.kind] ?? dim, opacity: 0.75, marginBottom: 6, fontFamily: sans,
+                color: SEGMENT_COLORS[seg.kind] ?? dim, opacity: seg.kind === "bold" ? 0.95 : 0.75,
+                marginBottom: 6, fontFamily: sans,
               }}>
-                ─ {seg.label} ─
+                {seg.kind === "bold" ? "⚡" : "─"} {seg.label} {seg.kind === "bold" ? "⚡" : "─"}
               </div>
             )}
             <div style={{
               fontFamily: serif, fontSize: 15.5, lineHeight: 1.85,
               color: SEGMENT_COLORS[seg.kind] ?? moon,
               fontStyle: seg.kind === "omen" ? "italic" : "normal",
+              textShadow: seg.kind === "bold" ? "0 0 18px rgba(255,209,102,0.25)" : "none",
             }}>
               {seg.text}
             </div>
