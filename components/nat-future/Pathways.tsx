@@ -2,7 +2,7 @@
 
 // The Inner Pathways — a lantern-lit hall off the main chamber. One door for
 // every weather of the heart; behind each door, asks that open the exact
-// reading a heavy day needs.
+// reading a heavy day needs. The anxiety door also offers the breath.
 
 import { PATHWAYS } from "./oracle";
 import { dim, faint, gold, goldSoft, mid, moon, sans, serif, veilSoft } from "./theme";
@@ -10,9 +10,11 @@ import { dim, faint, gold, goldSoft, mid, moon, sans, serif, veilSoft } from "./
 export default function Pathways({
   onAsk,
   onClose,
+  onBreathe,
 }: {
   onAsk: (text: string) => void;
   onClose: () => void;
+  onBreathe: () => void;
 }) {
   return (
     <div
@@ -71,6 +73,20 @@ export default function Pathways({
                 “{p.whisper}”
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {p.id === "anxiety" && (
+                  <button
+                    className="nf-chip"
+                    onClick={() => { onBreathe(); onClose(); }}
+                    style={{
+                      textAlign: "left", padding: "10px 14px", borderRadius: 12, cursor: "pointer",
+                      border: "1px solid rgba(255,209,102,0.4)", background: "rgba(255,209,102,0.08)",
+                      color: gold, fontFamily: serif, fontSize: 13.5, lineHeight: 1.5,
+                      transition: "transform 0.15s ease",
+                    }}
+                  >
+                    ☾ Breathe with me · a 4-2-8 pacer
+                  </button>
+                )}
                 {p.asks.map((ask) => (
                   <button
                     key={ask}

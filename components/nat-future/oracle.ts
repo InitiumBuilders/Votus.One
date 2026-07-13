@@ -731,6 +731,27 @@ export function divine(rawMessage: string, oracle: OracleId): Reading {
   };
 }
 
+// ── serialize a reading into the streaming marker format ─────────────────────
+// The live AI and this local fallback both speak the same marker language, so
+// the client renders them identically. [[CAST]] / [[TRUTH]] / [[MARK|days=N]] /
+// [[MOVE]] / [[ANCHOR]] / [[SEAL]] — opening text carries no marker.
+export function readingToMarkup(reading: Reading): string {
+  const out: string[] = [];
+  for (const seg of reading.segments) {
+    if (seg.kind === "opening") {
+      out.push(seg.text);
+      continue;
+    }
+    let meta = "";
+    if (seg.kind === "mark") {
+      const m = seg.text.match(/\b(\d{1,3})\s+days?\b/i);
+      if (m) meta = `|days=${m[1]}`;
+    }
+    out.push(`[[${seg.kind.toUpperCase()}${meta}]]\n${seg.text}`);
+  }
+  return out.join("\n");
+}
+
 // ── the daily omen — one line per day, same for all who visit ────────────────
 
 const DAILY_OMENS = [
