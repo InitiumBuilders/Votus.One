@@ -235,11 +235,14 @@ export default function NatFutureExperience() {
     setInput("");
     const asOracle = oracleRef.current;
     const history = buildHistory(messagesRef.current);
-    const oid = nextId + 1;
+    // Ids are minted eagerly so the setMessages updater stays pure — React
+    // StrictMode double-invokes updaters, and a nextId++ inside one would drift.
+    const uid = nextId++;
+    const oid = nextId++;
     setMessages((prev) => [
       ...prev,
-      { id: nextId++, role: "user", text },
-      { id: nextId++, role: "oracle", oracle: asOracle, raw: "", segments: [], streaming: true },
+      { id: uid, role: "user", text },
+      { id: oid, role: "oracle", oracle: asOracle, raw: "", segments: [], streaming: true },
     ]);
     setBusy(true);
     setDivining(true);
@@ -292,6 +295,10 @@ export default function NatFutureExperience() {
       }
     }
 
+    // If the sitting was cleared (or the component unmounted) mid-stream, don't
+    // seal — no stray Mark, no chime, no state writes on a discarded reading.
+    if (controller.signal.aborted) return;
+
     // Seal the reading.
     const finalSegs = parseMarkup(acc);
     const conf = confidenceFor(acc || text);
@@ -314,8 +321,9 @@ export default function NatFutureExperience() {
 
   const switchOracle = useCallback((next: OracleId) => {
     if (next === oracle || busy) return;
+    const greeting = greetingMessage(next); // eager — keep the updater pure
     setOracle(next);
-    setMessages((prev) => [...prev, greetingMessage(next)]);
+    setMessages((prev) => [...prev, greeting]);
     scrollDown();
   }, [oracle, busy, scrollDown]);
 

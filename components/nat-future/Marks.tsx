@@ -21,9 +21,9 @@ const DAY = 86400000;
 
 function countdown(m: Mark, now: number): { label: string; color: string } {
   if (m.status === "true") return { label: "Came true ✦", color: gold };
-  if (m.status === "miss") return { label: "Still waiting on the weave", color: dim };
+  if (m.status === "miss") return { label: "The window passed — not this time", color: dim };
   const diff = m.dueAt - now;
-  if (diff <= 0) return { label: "The window has arrived — watch closely", color: teal };
+  if (diff <= 0) return { label: "The window has arrived — did it land?", color: teal };
   const days = Math.ceil(diff / DAY);
   if (days <= 1) return { label: "Comes due today", color: goldSoft };
   return { label: `Comes due in ${days} days`, color: goldSoft };
@@ -102,6 +102,7 @@ export default function Marks({
 
           {sorted.map((m, i) => {
             const c = countdown(m, now);
+            const due = now >= m.dueAt; // a genuine miss can only be recorded once the window has passed
             return (
               <div
                 key={m.id}
@@ -124,6 +125,7 @@ export default function Marks({
                   </span>
                   {m.status === "pending" ? (
                     <div style={{ display: "flex", gap: 8 }}>
+                      {/* Early hits are legit — you can confirm a call any time. */}
                       <button
                         className="nf-chip"
                         onClick={() => onSet(m.id, "true")}
@@ -134,16 +136,19 @@ export default function Marks({
                       >
                         It came true ✦
                       </button>
-                      <button
-                        className="nf-chip"
-                        onClick={() => onSet(m.id, "miss")}
-                        style={{
-                          padding: "7px 14px", borderRadius: 999, cursor: "pointer", fontFamily: sans, fontSize: 12,
-                          border: `1px solid ${veilSoft}`, background: "transparent", color: dim,
-                        }}
-                      >
-                        Not yet
-                      </button>
+                      {/* A miss only counts once the window has actually passed. */}
+                      {due && (
+                        <button
+                          className="nf-chip"
+                          onClick={() => onSet(m.id, "miss")}
+                          style={{
+                            padding: "7px 14px", borderRadius: 999, cursor: "pointer", fontFamily: sans, fontSize: 12,
+                            border: `1px solid ${veilSoft}`, background: "transparent", color: dim,
+                          }}
+                        >
+                          Didn&apos;t happen
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <button
