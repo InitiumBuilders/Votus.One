@@ -44,6 +44,34 @@ Your growth is written as it happens:
   iPhone app, Macintosh app, Linux app, or a team website**, and **August, the Motus
   Mentor**, a hype-guide coach prompt for any assistant
 
+## Natari — Systems With Soul ⟁
+
+Live at **[Votus.One/natari](https://Votus.One/natari)** — the evolution of Nat-Future into an
+**emergent strategist and systems practitioner**, woven on the **Davara Baseline**.
+
+Natari doesn't only forecast. She **diagnoses**. Every reading names the structure you're standing
+inside (the loop, the delay, the stock, the mismatch), locates the leverage on **Dana Meadows'
+twelve points**, makes one dated call you can hold her to, and leaves you a **door** — the humane
+next step. Her spine is the Sympath Loop from the baseline:
+
+> **Diagnose the system. Never blame the node. Always leave a door.**
+
+**Five chambers**, built as a surface worth checking daily:
+
+| Chamber | What it holds |
+|---|---|
+| **The Current** | Today's lever from the twelve, a growth edge, a practice, and the question to sit with |
+| **The Oracle** | Natari — live streaming systems readings (Sight · Structure · Leverage · Mark · Door) |
+| **The Mentor** | **MotusMentor** — the inner weather read structurally, never as a verdict on you, plus a 4-2-8 breathing pacer |
+| **The Twelve** | Meadows' leverage ladder, interactive, each rung with its mantra and its real strength |
+| **The Marks** | Every dated call, with a countdown and an honest reckoning when its window opens |
+
+**Design:** Davara Distinct V3 · Nocturne substrate, violet neoglass, one aurora, one gold reserved
+for leverage. The resident life-form is **the swarm** — a canvas flocking system of ~210 particles
+behaving as one being: it inhabits and orbits whatever holds the charge, absorbs that element's
+essence hue, streams across the screen when the charge hands off, notices your cursor, and carries
+micro-lightning inside itself. All 19 text/surface pairs verified at ≥9:1 contrast.
+
 ## Nat-Future-Insight — The Oracle That Reads Tomorrow ✦
 
 Live at **[Votus.One/nat-future-insight](https://Votus.One/nat-future-insight)** — a **live,

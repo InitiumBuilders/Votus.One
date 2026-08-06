@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
       // (Casing variants like /Nat-Future-Insight are handled in middleware.ts —
       // redirect sources match case-insensitively, so listing them here loops.)
       { source: "/natfutureinsight", destination: "/nat-future-insight", permanent: true },
+      // Natari — the evolution.
+      { source: "/nat", destination: "/natari", permanent: false },
+      { source: "/systems", destination: "/natari", permanent: false },
+      { source: "/motusmentor", destination: "/natari", permanent: false },
+      { source: "/mentor", destination: "/natari", permanent: false },
       { source: "/nat-future", destination: "/nat-future-insight", permanent: true },
       { source: "/oracle", destination: "/nat-future-insight", permanent: true },
       { source: "/natalie", destination: "/nat-future-insight", permanent: true },
