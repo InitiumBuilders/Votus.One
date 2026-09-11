@@ -35,3 +35,7 @@ votus-one-data/
 
 # PromptHero — the journey is private by design
 .prompthero/
+
+# Python
+__pycache__/
+*.pyc

@@ -44,6 +44,26 @@ Your growth is written as it happens:
   iPhone app, Macintosh app, Linux app, or a team website**, and **August, the Motus
   Mentor**, a hype-guide coach prompt for any assistant
 
+## Unpaywall Research — The Open Access Skill 🔓
+
+Live at **[Votus.One/unpaywall.md](https://Votus.One/unpaywall.md)** — a research skill built on
+**[Unpaywall](https://unpaywall.org/)**, the non-profit database of free, legal full-text copies of
+scholarly articles (now served from OpenAlex). Give any agent a DOI, a title, or a reading list and it
+resolves each paper to its **best open access copy** — PDF link, license, and version — reads the copy
+it actually found, and reports with the evidence trail attached.
+
+| Piece | What it does |
+|---|---|
+| [`skills/unpaywall-research/SKILL.md`](./skills/unpaywall-research/SKILL.md) | The research loop: collect DOIs → resolve OA status → choose the copy → read → extract with anchors → report with an **OA Evidence Table** |
+| [`scripts/unpaywall.py`](./skills/unpaywall-research/scripts/unpaywall.py) | Zero-dependency CLI: `lookup`, `search`, `batch` (CSV/JSONL + OA tally), `pdf`, `openalex` fallback — paced, retried, cached |
+| [`references/`](./skills/unpaywall-research/references) | Exact API schema, how gold/green/hybrid/bronze are decided and ranked, and the OpenAlex bridge (API-key era) |
+
+Also installed at [`.claude/skills/unpaywall-research/`](./.claude/skills/unpaywall-research/) so Claude
+Code picks it up in this repo (`/unpaywall-research`). Only legal OA copies, always; when nothing is open
+it says so and points to the honest next steps.
+
+> Energy flows where the vibes grow — and knowledge flows where the access is open.
+
 ## Natari — Systems With Soul ⟁
 
 Live at **[Votus.One/natari](https://Votus.One/natari)** — the evolution of Nat-Future into an

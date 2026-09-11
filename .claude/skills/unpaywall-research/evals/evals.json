@@ -1,0 +1,22 @@
+{
+  "skill_name": "unpaywall-research",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm writing a section on open access for a grant narrative. Can you find me the free full text of 10.7717/peerj.4375 and 10.1038/nature12373, tell me which are actually open (and what kind of open), and pull two or three key findings from whichever ones you can read? Cite properly, I need to be able to click through.",
+      "expected_output": "Uses the Unpaywall DOI endpoint (or bundled script) for both DOIs with a real email; reports oa_status, version, license, and URL for each; reads only the copies that are OA; findings carry page/section anchors; ends with an OA Evidence Table; flags the closed one honestly with legal next steps rather than a pirate mirror.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "here's our lab's 2024 publication list (dois.txt, ~180 DOIs). our funder wants to know what percent is open access and how many are only open as preprints. can you run it and give me a table i can paste into the report?",
+      "expected_output": "Runs the batch command at a polite rate, excludes paratext, reports the tally (% OA, counts by oa_status, count with direct PDF), separately counts records whose best or only OA copy is submittedVersion, writes a CSV, dates the lookup, and notes that statuses change over time.",
+      "files": ["dois.txt"]
+    },
+    {
+      "id": 3,
+      "prompt": "There's a 2019 paper about 'shadowed green' open access, something like 'the state of OA' follow-up from the Unpaywall folks, I don't have the DOI. Find it, check if it's free, and summarize what shadowed green means.",
+      "expected_output": "Recovers the DOI via Unpaywall title search or OpenAlex search, confirms year/authors before trusting the hit, looks up OA status, reads the OA copy, explains shadowed green (repository copies hidden behind a publisher-hosted oa_status) with reference to has_repository_copy / any_repository_has_fulltext, and appends an OA Evidence Table."
+    }
+  ]
+}
