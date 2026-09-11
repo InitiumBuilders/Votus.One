@@ -39,3 +39,6 @@ votus-one-data/
 # Python
 __pycache__/
 *.pyc
+
+# TypeScript incremental build info
+tsconfig.tsbuildinfo
