@@ -48,6 +48,19 @@ export default function Home() {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-6px); }
         }
+        /* The hero rises on first paint — pure CSS, so it never waits on
+           hydration (or on JS at all). Below the fold, Reveal takes over. */
+        @keyframes ph-rise {
+          from { opacity: 0; transform: translateY(24px); filter: blur(4px); }
+          to { opacity: 1; transform: none; filter: none; }
+        }
+        .ph-rise { animation: ph-rise 0.8s ease both; }
+        .ph-float { animation: ph-float 6s ease-in-out infinite; }
+        .ph-glow { animation: ph-glow 7s ease-in-out infinite; }
+        .ph-line { animation: ph-line 3s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .ph-rise, .ph-float, .ph-glow, .ph-line { animation: none; }
+        }
       `}</style>
 
       <main style={{
@@ -66,16 +79,16 @@ export default function Home() {
 
           {/* ─── Hero ─── */}
           <section style={{ ...sectionStyle, minHeight: "100dvh", justifyContent: "center", padding: "80px 24px" }}>
-            <Reveal>
-              <div style={{ marginBottom: 36, animation: "ph-float 6s ease-in-out infinite" }}>
+            <div className="ph-rise">
+              <div className="ph-float" style={{ marginBottom: 36 }}>
                 <EmberMark size={64} />
               </div>
-            </Reveal>
-            <Reveal delay={0.15}>
+            </div>
+            <div className="ph-rise" style={{ animationDelay: "0.15s" }}>
               <p style={kickerStyle}>Votus.One Presents · The Universal Skill</p>
-            </Reveal>
-            <Reveal delay={0.3}>
-              <h1 style={{
+            </div>
+            <div className="ph-rise" style={{ animationDelay: "0.3s" }}>
+              <h1 className="ph-glow" style={{
                 fontSize: "clamp(2.7rem, 12vw, 6rem)",
                 fontWeight: 200,
                 letterSpacing: "0.14em",
@@ -85,31 +98,30 @@ export default function Home() {
                 backgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 color: "#00d4ff",
-                animation: "ph-glow 7s ease-in-out infinite",
               }}>PromptHero</h1>
-            </Reveal>
-            <Reveal delay={0.45}>
+            </div>
+            <div className="ph-rise" style={{ animationDelay: "0.45s" }}>
               <p style={{ maxWidth: 460, fontSize: "clamp(1.05rem, 3.2vw, 1.35rem)", fontWeight: 200, fontStyle: "italic", lineHeight: 1.9, color: mid, marginBottom: 20 }}>
                 Every prompt is a mirror.<br />PromptHero teaches you to read it.
               </p>
-            </Reveal>
-            <Reveal delay={0.6}>
+            </div>
+            <div className="ph-rise" style={{ animationDelay: "0.6s" }}>
               <p style={{ maxWidth: 480, fontSize: 14, fontWeight: 300, lineHeight: 2, color: dim }}>
                 A personal learning engine for the craft of the ask — it studies your prompts, coaches your growth, and writes your evolution as it happens. One markdown file. Works with Claude, Davara, Hermes, Openclaw, and any agent that can read.
               </p>
-            </Reveal>
-            <Reveal delay={0.75}>
+            </div>
+            <div className="ph-rise" style={{ animationDelay: "0.75s" }}>
               <HeroActions skillText={skill} />
-            </Reveal>
-            <Reveal delay={0.95}>
-              <div style={{ marginTop: 52, width: 1, height: 60, background: "linear-gradient(180deg, rgba(0,212,255,0.5), transparent)", animation: "ph-line 3s ease-in-out infinite" }} />
-            </Reveal>
+            </div>
+            <div className="ph-rise" style={{ animationDelay: "0.95s" }}>
+              <div className="ph-line" style={{ marginTop: 52, width: 1, height: 60, background: "linear-gradient(180deg, rgba(0,212,255,0.5), transparent)" }} />
+            </div>
           </section>
 
           {/* ─── Manifesto ─── */}
           <section style={{ ...sectionStyle, paddingTop: 24 }}>
             <div style={columnStyle}>
-              <Reveal>
+              <Reveal sound="reveal">
                 <p style={{ ...kickerStyle, marginBottom: 36 }}>Prologue · Why The Ask Matters</p>
               </Reveal>
               {MANIFESTO.map((p, i) => (

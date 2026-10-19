@@ -13,7 +13,7 @@
 // because electricity here is a creature, not a glow.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type Mood = "orbit" | "gather" | "lead" | "startle" | "gentle";
 
@@ -35,22 +35,34 @@ interface Props {
   mood?: Mood;
   /** Ids of word-level beacons; the swarm detaches wisps to visit them. */
   wispId?: string | null;
+  /** Rest — the being folds away while something covers it (the breath). */
+  paused?: boolean;
 }
 
 const TAU = Math.PI * 2;
 
-export default function Swarm({ attractorId = null, essence = 265, mood = "orbit", wispId = null }: Props) {
+export default function Swarm({ attractorId = null, essence = 265, mood = "orbit", wispId = null, paused = false }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const stateRef = useRef({ attractorId, essence, mood, wispId });
-  stateRef.current = { attractorId, essence, mood, wispId };
+  const stateRef = useRef({ attractorId, essence, mood, wispId, paused });
+  stateRef.current = { attractorId, essence, mood, wispId, paused };
+
+  // Reduced motion is a live preference — follow it if it changes mid-sitting.
+  const [reduced, setReduced] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const on = () => setReduced(mq.matches);
+    on();
+    mq.addEventListener?.("change", on);
+    return () => mq.removeEventListener?.("change", on);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let w = 0, h = 0, dpr = 1;
     const resize = () => {
@@ -104,9 +116,12 @@ export default function Swarm({ attractorId = null, essence = 265, mood = "orbit
       const pick = wisp ? document.getElementById(wisp) : id ? document.getElementById(id) : null;
       if (pick) {
         const r = pick.getBoundingClientRect();
-        if (r.width > 0 && r.height > 0) {
-          target.x = r.left + r.width / 2;
-          target.y = r.top + r.height / 2;
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        // only inhabit what can be seen — an off-screen target past the wrap
+        // line would keep the being streaming forever
+        if (r.width > 0 && r.height > 0 && cx >= 0 && cx <= w && cy >= 0 && cy <= h) {
+          target.x = cx;
+          target.y = cy;
           // inhabit the element: ring sized to it, not a fixed dot
           target.r = Math.max(52, Math.min(Math.max(r.width, r.height) * 0.62, 260));
           return;
@@ -121,10 +136,18 @@ export default function Swarm({ attractorId = null, essence = 265, mood = "orbit
     document.addEventListener("visibilitychange", onVis);
 
     let t0 = performance.now();
+    let resting = false;
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
       if (!visible) return;
+      // paused: clear once, then spend nothing until it wakes
+      if (stateRef.current.paused) {
+        if (!resting) { ctx.clearRect(0, 0, w, h); resting = true; }
+        t0 = now;
+        return;
+      }
+      resting = false;
       const dt = Math.min((now - t0) / 16.67, 2.5); // normalized to ~60fps
       t0 = now;
 
@@ -265,10 +288,12 @@ export default function Swarm({ attractorId = null, essence = 265, mood = "orbit
 
     if (!reduced) raf = requestAnimationFrame(frame);
     else {
-      // Reduced motion: a calm static aura marks the charged element.
-      readAttractor();
+      // Reduced motion: a calm static aura marks the charged element —
+      // re-read each paint, so it follows the charge without moving.
       const paint = () => {
         ctx.clearRect(0, 0, w, h);
+        if (stateRef.current.paused) return;
+        readAttractor();
         const g = ctx.createRadialGradient(target.x, target.y, 0, target.x, target.y, target.r * 1.5);
         g.addColorStop(0, `hsla(${stateRef.current.essence}, 90%, 70%, 0.20)`);
         g.addColorStop(1, "hsla(0,0%,0%,0)");
@@ -295,7 +320,7 @@ export default function Swarm({ attractorId = null, essence = 265, mood = "orbit
       window.removeEventListener("pointerdown", onDown);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, []);
+  }, [reduced]);
 
   return (
     <canvas

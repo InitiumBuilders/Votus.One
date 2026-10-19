@@ -13,6 +13,8 @@
 // marker language.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { isCrisis, isSensitive, normalizeAsk } from "../../lib/safety";
+
 export type OracleId = "natari" | "mentor";
 
 export type SegmentKind =
@@ -74,7 +76,8 @@ const pick = <T,>(rng: () => number, arr: T[]): T => arr[Math.floor(rng() * arr.
 // ── reading the asker ───────────────────────────────────────────────────────
 type Domain = "work" | "venture" | "people" | "money" | "craft" | "learning" | "body" | "place" | "tech" | "choice" | "self" | "world" | "general";
 type Inner = "anxiety" | "low" | "burnout" | "grief" | "lonely" | "overwhelm" | "doubt" | null;
-type Intent = "greeting" | "identity" | "thanks" | "gamble" | "crisis" | "question";
+// Crisis and sensitive asks never reach here — lib/safety reads them first.
+type Intent = "greeting" | "identity" | "thanks" | "gamble" | "question";
 
 const matchAny = (m: string, ps: RegExp[]) => ps.some((p) => p.test(m));
 
@@ -83,7 +86,6 @@ function detectIntent(m: string): Intent {
   if (matchAny(m, [/who are you/, /what are you/, /what is this/, /how do you work/, /davara/, /natari\?*$/, /motusmentor/])) return "identity";
   if (matchAny(m, [/^(thanks|thank you|ty|thx)/, /^(bye|goodbye|good night)/]) && m.length < 60) return "thanks";
   if (matchAny(m, [/lottery|lotto|jackpot|powerball|winning numbers|casino|which stock|crypto price|price of bitcoin/])) return "gamble";
-  if (matchAny(m, [/\b(suicid|self.?harm|kill myself|want to die|end it all|end my life|no reason to live|can'?t go on|hopeless|worthless)\b/])) return "crisis";
   return "question";
 }
 
@@ -255,6 +257,15 @@ const MENTOR: Record<Exclude<Inner, null>, { reframe: string; structure: string;
   },
 };
 
+// When the weather has no name, the Mentor still reads a shape — never a
+// forecast, never a Mark. Its format has neither.
+const MENTOR_OPENING = "Whatever this is, it's a structure before it's a verdict on you. Let's look at the shape together.";
+const MENTOR_ANCHORS: string[] = [
+  "You are not stuck. You are inside a shape — and every shape has a door.",
+  "The system dug the groove. The next step out of it is yours.",
+  "One small, true move outranks a perfect plan you never start.",
+];
+
 // ── the divination ──────────────────────────────────────────────────────────
 
 export function readingToMarkup(reading: Reading): string {
@@ -271,15 +282,44 @@ const seg = (kind: SegmentKind, text: string, meta: Record<string, string> = {})
 
 const SIGILS = ["☾", "✦", "☉", "⟁", "✧", "❋", "☽", "✵"];
 
+// ── the licensed-human door — medicine, the law, driving impaired ───────────
+// Some questions a reading must not answer. No cast, no Mark — a better door.
+const IMPAIRED = /\b(drunk|drinking|drank|drinks|high|stoned)\b/;
+const DRIVING = /\b(drive|driving)\b/;
+
+function sensitiveReading(m: string, who: OracleId): Reading {
+  const impaired = IMPAIRED.test(m) && DRIVING.test(m);
+  const seal = seg("seal", "Diagnose the system. Never blame the node. Always leave a door.");
+  if (who === "mentor") {
+    return {
+      sigil: "☀",
+      segments: [
+        seg("opening", "I'm a lantern, not a clinician — and this one deserves a licensed human. A doctor, a pharmacist, or a lawyer can see what I can't, and reaching for them isn't the lesser door. It's the right one."),
+        seg("door", impaired
+          ? "The door: if you've been drinking, the keys stay down tonight. Call a ride, call a friend, or stay where you are — the morning will still be there."
+          : "The door: write your question down — exactly as you'd say it to me — and bring it to them. If it can't wait, call today. If it feels like an emergency, call your local emergency number now."),
+        seg("anchor", "Asking the right person is not handing over control. It's taking it back."),
+        seal,
+      ],
+    };
+  }
+  return {
+    sigil: "☀",
+    segments: [
+      seg("opening", "This one I won't cast. Medicine, a diagnosis, the law — the stakes are too specific for a reading, and a forecast here would be a guess wearing a robe. It deserves a licensed human: a doctor, a pharmacist, a lawyer."),
+      seg("structure", "The missing piece is an information flow, not a prophecy. The person with the licence can see what I can't — your history, your numbers, the rules where you live. Put the question in front of them and the whole system re-points."),
+      seg("door", impaired
+        ? "The door: if you've been drinking, the keys stay down tonight — a ride, a friend, a couch. Bring me the rest in the morning."
+        : "The door: write the question down, word for word, and bring it to them. If it can't wait, call today — and if it feels like an emergency, call your local emergency number now. A clear question is half the help."),
+      seal,
+    ],
+  };
+}
+
 export function divine(raw: string, who: OracleId): Reading {
-  const message = raw.trim();
-  const m = message.toLowerCase();
-  const rng = mulberry32(hashString(`${who}::${m}`));
-  const sigil = pick(rng, SIGILS);
-
-  const intent = detectIntent(m);
-
-  if (intent === "crisis") {
+  // The floor comes first — before greeting, identity, thanks or gamble.
+  // Crisis gets human hands: no structure, no lever, no Mark.
+  if (isCrisis(raw)) {
     return {
       sigil: "☀",
       segments: [
@@ -288,6 +328,14 @@ export function divine(raw: string, who: OracleId): Reading {
       ],
     };
   }
+
+  const m = normalizeAsk(raw);
+  if (isSensitive(raw)) return sensitiveReading(m, who);
+
+  const rng = mulberry32(hashString(`${who}::${m}`));
+  const sigil = pick(rng, SIGILS);
+
+  const intent = detectIntent(m);
 
   if (intent === "greeting") {
     return {
@@ -342,6 +390,21 @@ export function divine(raw: string, who: OracleId): Reading {
   }
 
   const domain = detectDomain(m);
+
+  // The Mentor coaches; it does not cast. No lever, no dated Mark.
+  if (who === "mentor") {
+    return {
+      sigil: "☀",
+      segments: [
+        seg("opening", MENTOR_OPENING),
+        seg("structure", pick(rng, STRUCTURES[domain])),
+        seg("door", pick(rng, DOORS)),
+        seg("anchor", pick(rng, MENTOR_ANCHORS)),
+        seg("seal", "Diagnose the system. Never blame the node. Always leave a door."),
+      ],
+    };
+  }
+
   const lev = pick(rng, LEVERAGES[domain]);
   const days = 3 + Math.floor(rng() * 19);
 
@@ -401,11 +464,13 @@ const PRACTICES = [
 export function heartbeat(date: Date): Heartbeat {
   const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
   const h = hashString(key);
+  // Unsigned shifts: h is a uint32, and a signed >> turns half of all days
+  // into negative indexes — blank cards.
   return {
     lever: TWELVE[h % TWELVE.length],
-    edge: EDGES[(h >> 3) % EDGES.length],
-    question: QUESTIONS[(h >> 6) % QUESTIONS.length],
-    practice: PRACTICES[(h >> 9) % PRACTICES.length],
+    edge: EDGES[(h >>> 3) % EDGES.length],
+    question: QUESTIONS[(h >>> 6) % QUESTIONS.length],
+    practice: PRACTICES[(h >>> 9) % PRACTICES.length],
   };
 }
 

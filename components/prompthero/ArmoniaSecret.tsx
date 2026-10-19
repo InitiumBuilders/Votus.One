@@ -1,15 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Beyond the last rank there is a whisper. Most will scroll past it.
 // The ones who notice — they were always going to find it.
 export default function ArmoniaSecret() {
   const [revealed, setRevealed] = useState(false);
+  const found = useRef<HTMLDivElement>(null);
+
+  // Whoever found it by keyboard or voice lands inside it, not at the top.
+  useEffect(() => {
+    if (revealed) found.current?.focus();
+  }, [revealed]);
 
   if (revealed) {
     return (
-      <div style={{
+      <div ref={found} tabIndex={-1} role="region" aria-label="Armonia — The Hidden Finality" className="armonia-found" style={{
         marginTop: 26,
         padding: "24px 22px",
         borderRadius: 16,
@@ -20,11 +26,14 @@ export default function ArmoniaSecret() {
         <style>{`
           @keyframes armonia-in { from { opacity: 0; filter: blur(6px); } to { opacity: 1; filter: blur(0); } }
           @keyframes armonia-breathe { 0%, 100% { text-shadow: 0 0 14px rgba(255,158,100,0.4); } 50% { text-shadow: 0 0 30px rgba(255,209,102,0.7), 0 0 60px rgba(255,158,100,0.25); } }
+          .armonia-found:focus { outline: none; }
+          .armonia-found:focus-visible { outline: 1px solid rgba(255,158,100,0.6); outline-offset: 4px; }
+          @media (prefers-reduced-motion: reduce) { .armonia-found, .armonia-breathe { animation: none !important; } }
         `}</style>
-        <p style={{ fontSize: 11, letterSpacing: "0.4em", textTransform: "uppercase", color: "rgba(255,158,100,0.55)", marginBottom: 10 }}>
+        <p style={{ fontSize: 11, letterSpacing: "0.4em", textTransform: "uppercase", color: "rgba(255,158,100,0.8)", marginBottom: 10 }}>
           The Hidden Finality
         </p>
-        <p style={{ fontSize: 20, fontWeight: 200, letterSpacing: "0.22em", color: "rgba(255,209,102,0.9)", marginBottom: 12, animation: "armonia-breathe 4s ease-in-out infinite" }}>
+        <p className="armonia-breathe" style={{ fontSize: 20, fontWeight: 200, letterSpacing: "0.22em", color: "rgba(255,209,102,0.9)", marginBottom: 12, animation: "armonia-breathe 4s ease-in-out infinite" }}>
           ∞ ARMONIA
         </p>
         <p style={{ fontSize: 13.5, fontWeight: 300, lineHeight: 2, color: "rgba(250,250,250,0.55)" }}>
@@ -37,6 +46,10 @@ export default function ArmoniaSecret() {
       </div>
     );
   }
+
+  const glow = (e: React.SyntheticEvent<HTMLElement>, on: boolean) => {
+    e.currentTarget.style.color = on ? "rgba(255,209,102,0.4)" : "rgba(255,209,102,0.14)";
+  };
 
   return (
     <button
@@ -54,8 +67,10 @@ export default function ArmoniaSecret() {
         padding: 8,
         transition: "color 0.6s",
       }}
-      onMouseEnter={(e) => { (e.target as HTMLElement).style.color = "rgba(255,209,102,0.4)"; }}
-      onMouseLeave={(e) => { (e.target as HTMLElement).style.color = "rgba(255,209,102,0.14)"; }}
+      onMouseEnter={(e) => glow(e, true)}
+      onMouseLeave={(e) => glow(e, false)}
+      onFocus={(e) => glow(e, true)}
+      onBlur={(e) => glow(e, false)}
     >
       ∞
     </button>

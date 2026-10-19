@@ -1,24 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { copyText, srOnly } from "./copyText";
 
 // The two acts of adoption: take the skill now, or carry it with you.
 export default function HeroActions({ skillText }: { skillText: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"idle" | "done" | "failed">("idle");
 
+  // Only claim the copy when it landed; if the browser refused, point at
+  // the download beside it instead of a false ✓.
   const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(skillText);
-    } catch {
-      const ta = document.createElement("textarea");
-      ta.value = skillText;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2400);
+    const ok = await copyText(skillText);
+    setCopied(ok ? "done" : "failed");
+    setTimeout(() => setCopied("idle"), ok ? 2400 : 4200);
   };
 
   const pill: React.CSSProperties = {
@@ -40,20 +34,23 @@ export default function HeroActions({ skillText }: { skillText: string }) {
         style={{
           ...pill,
           color: "#09090b",
-          background: copied ? "rgba(255,209,102,0.9)" : "rgba(0,212,255,0.85)",
+          background: copied === "done" ? "rgba(255,209,102,0.9)" : copied === "failed" ? "rgba(255,158,100,0.9)" : "rgba(0,212,255,0.85)",
           border: "1px solid transparent",
-          boxShadow: copied ? "0 0 40px rgba(255,209,102,0.35)" : "0 0 34px rgba(0,212,255,0.3)",
+          boxShadow: copied === "done" ? "0 0 40px rgba(255,209,102,0.35)" : copied === "failed" ? "0 0 40px rgba(255,158,100,0.3)" : "0 0 34px rgba(0,212,255,0.3)",
           fontWeight: 500,
         }}
       >
-        {copied ? "Skill Copied ✓" : "⚡ Copy The Skill"}
+        {copied === "done" ? "Skill Copied ✓" : copied === "failed" ? "Copy Blocked · Download →" : "⚡ Copy The Skill"}
       </button>
+      <span role="status" style={srOnly}>
+        {copied === "done" ? "The PromptHero skill is copied to your clipboard." : copied === "failed" ? "This browser blocked the copy. Use Download SKILL.md instead." : ""}
+      </span>
       <a
         href="/skill.md"
         download="PromptHero-SKILL.md"
         style={{
           ...pill,
-          color: "rgba(0,212,255,0.75)",
+          color: "rgba(0,212,255,0.8)",
           background: "rgba(0,212,255,0.05)",
           border: "1px solid rgba(0,212,255,0.25)",
         }}

@@ -51,12 +51,8 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-    ],
-    apple: "/icon.svg",
-  },
+  // No `icons` here on purpose: setting it would hide app/apple-icon.tsx
+  // (iOS needs that PNG). The favicon is the one <link> in <head> below.
   manifest: "/manifest.json",
   alternates: {
     canonical: "https://Votus.One",
@@ -70,6 +66,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <meta name="theme-color" content="#09090b" />
+        {/* Without JS, nothing waits to be revealed — every block simply shows. */}
+        <noscript>
+          <style>{"[data-reveal]{opacity:1!important;transform:none!important;filter:none!important}"}</style>
+        </noscript>
       </head>
       <body>
         {children}

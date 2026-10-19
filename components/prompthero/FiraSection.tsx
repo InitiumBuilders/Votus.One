@@ -53,8 +53,8 @@ export default function FiraSection() {
             </svg>
           </div>
         </Reveal>
-        <Reveal delay={0.1}>
-          <p style={{ ...kickerStyle, color: "rgba(255,158,100,0.5)" }}>The Second Soul</p>
+        <Reveal delay={0.1} sound="reveal">
+          <p style={{ ...kickerStyle, color: "rgba(255,158,100,0.8)" }}>The Second Soul</p>
         </Reveal>
         <Reveal delay={0.2}>
           <h2 style={{
@@ -96,13 +96,13 @@ export default function FiraSection() {
           </div>
         </Reveal>
         <Reveal delay={0.5}>
-          <p style={{ fontSize: 13, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,158,100,0.6)" }}>
+          <p style={{ fontSize: 13, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,158,100,0.8)" }}>
             Find Strength From Within
           </p>
         </Reveal>
         <Reveal delay={0.6}>
           <p style={{ fontSize: 12, color: faint, marginTop: 14, letterSpacing: "0.08em" }}>
-            🔥 Fira lives in every blueprint below — every dashboard ships with her ember waiting.
+            🔥 Fira lives in every blueprint above — every dashboard ships with her ember waiting.
           </p>
         </Reveal>
       </div>

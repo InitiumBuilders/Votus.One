@@ -1,12 +1,13 @@
 {
   "name": "votus-one",
-  "version": "6.0.0",
+  "version": "7.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:safety": "node --no-warnings scripts/safety-check.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",

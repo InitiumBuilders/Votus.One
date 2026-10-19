@@ -16,18 +16,24 @@ export default function Starfield() {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let raf = 0;
     let w = 0, h = 0;
+    let seededW = 0, seededH = 0;
 
     type Star = { x: number; y: number; r: number; base: number; phase: number; speed: number; gold: boolean };
     let stars: Star[] = [];
     let shot: { x: number; y: number; vx: number; vy: number; life: number } | null = null;
     let nextShot = 400;
 
-    const seed = () => {
+    const size = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       w = window.innerWidth; h = window.innerHeight;
       canvas.width = w * dpr; canvas.height = h * dpr;
       canvas.style.width = `${w}px`; canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    const seed = () => {
+      size();
+      seededW = w; seededH = h;
       const count = Math.min(160, Math.floor((w * h) / 9000));
       stars = Array.from({ length: count }, () => ({
         x: Math.random() * w,
@@ -40,9 +46,14 @@ export default function Starfield() {
       }));
     };
 
-    let t = 0;
-    const draw = () => {
-      t += 0.016;
+    // Time comes from the clock, not the frame count: a 120Hz screen
+    // twinkles at the same pace as a 60Hz one. k = this frame in 60fps frames.
+    let t = 0, last = 0;
+    const draw = (now: number) => {
+      const dt = last ? Math.min(Math.max((now - last) / 1000, 0), 0.1) : 1 / 60;
+      last = now;
+      const k = dt * 60;
+      t += dt;
       ctx.clearRect(0, 0, w, h);
       for (const s of stars) {
         const tw = reduced ? 1 : 0.55 + 0.45 * Math.sin(s.phase + t * s.speed);
@@ -54,7 +65,7 @@ export default function Starfield() {
       }
       if (!reduced) {
         if (shot) {
-          shot.x += shot.vx; shot.y += shot.vy; shot.life -= 1;
+          shot.x += shot.vx * k; shot.y += shot.vy * k; shot.life -= k;
           const grad = ctx.createLinearGradient(shot.x, shot.y, shot.x - shot.vx * 12, shot.y - shot.vy * 12);
           grad.addColorStop(0, `rgba(255,255,255,${Math.min(0.7, shot.life / 40)})`);
           grad.addColorStop(1, "rgba(0,212,255,0)");
@@ -65,7 +76,7 @@ export default function Starfield() {
           ctx.lineTo(shot.x - shot.vx * 12, shot.y - shot.vy * 12);
           ctx.stroke();
           if (shot.life <= 0 || shot.x < -50 || shot.x > w + 50) shot = null;
-        } else if (--nextShot <= 0) {
+        } else if ((nextShot -= k) <= 0) {
           const fromLeft = Math.random() < 0.5;
           shot = {
             x: fromLeft ? -20 : w + 20,
@@ -81,8 +92,15 @@ export default function Starfield() {
     };
 
     seed();
-    draw();
-    const onResize = () => { seed(); if (reduced) draw(); };
+    draw(performance.now());
+    // Mobile toolbars resize the viewport on every scroll; only a real change
+    // of shape (rotation, a dragged window) re-scatters the sky.
+    const onResize = () => {
+      const nw = window.innerWidth, nh = window.innerHeight;
+      if (Math.abs(nw - seededW) > seededW * 0.08 || Math.abs(nh - seededH) > seededH * 0.3) seed();
+      else size();
+      if (reduced) draw(performance.now());
+    };
     window.addEventListener("resize", onResize);
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
   }, []);

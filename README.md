@@ -82,8 +82,8 @@ call), and the Move. **Natalie**, the playful friend-voice of the weave, reads i
 friend who happens to own a crystal ball.
 
 Every dated call becomes a tracked **Mark** — the ledger keeps a countdown to each prediction's
-window and asks one honest question when it arrives (*did it come true?*), so the oracle keeps
-its own public scorecard. For heavy days there are the **Inner Pathways** — nine lantern-lit
+window and asks one honest question when it arrives (*did it come true?*), so you keep the
+oracle's scorecard yourself, on your device. A call only counts once its window has opened. For heavy days there are the **Inner Pathways** — nine lantern-lit
 doors with guided asks, evidence-backed encouragement, and a **4-2-8 breathing pacer** (the orb
 becomes the breath) — with crisis resources always one glance away.
 
@@ -97,12 +97,40 @@ streamed identically, so it is never mute. No key, no other configuration requir
 
 *Insight & foresight for guidance and delight — not medical, legal, or financial advice.*
 
+### The Safety Floor
+
+Every voice (Natari, the MotusMentor, Nat, Natalie), live or local, checks
+[`lib/safety.ts`](./lib/safety.ts) before it reads:
+
+- **Crisis words never get a prophecy.** A question that carries crisis gets human care first:
+  a card with tappable **Call 988 · Text 988 · findahelpline.com**. No Mark, no chime, no
+  certainty meter. The card is pinned and survives a reload.
+- **Some questions are never forecast.** Medication, dosage, pregnancy, a diagnosis, legal
+  trouble, or driving after drinking get a licensed human (doctor, pharmacist, lawyer). They get
+  no "yes" and no Mark.
+- `npm run test:safety` runs the phrase table. Any change to the floor should add to it.
+
+### Running the Live AI Safely
+
+The `/api/oracle` and `/api/natari` routes call a paid model, so they guard themselves. They
+cap input size, refuse cross-site calls, and run a best-effort per-IP limiter. A stalled or
+failed live call seals the reading in voice, or falls to the local engine. Each request writes
+one JSON trace line to the Vercel logs: live vs. local, the fail reason, the marker shapes, and
+the Mark window. The trace never includes the asker's words.
+
+Two settings live outside the code. Set them before sending traffic:
+
+1. **Vercel → Firewall → Rate limiting:** a rule on `/api/oracle` and `/api/natari`
+   (e.g. 20 requests / 10 min per IP → 429). The clients fall back to the local engine on a 429.
+2. **Anthropic Console → Limits:** a monthly spend limit on the workspace that owns the key.
+
 ## The Stack
 
 | Layer | Tech |
 |-------|------|
 | Frontend | Next.js 15 (App Router), React 19, inline styles |
-| Live oracle | `/api/oracle` route handler streaming from Claude (`@anthropic-ai/sdk`), with a local-engine fallback |
+| Live oracles | `/api/oracle` (Nat-Future) and `/api/natari` (Natari) stream from Claude (`@anthropic-ai/sdk`) through a shared guard (`lib/oracle-route.ts`), with a local-engine fallback |
+| Safety | `lib/safety.ts`, the one crisis + sensitive check every voice runs first |
 | Content | The skill files are read at build time — the site and the artifact never drift |
 | Deployment | Vercel — push to `main` → live |
 | Domain | [Votus.One](https://Votus.One) |
@@ -115,8 +143,8 @@ npm run dev   # → http://localhost:3000
 ```
 
 No environment variables required to run — the oracle streams from its local fallback engine
-out of the box. Set `ANTHROPIC_API_KEY` to power Nat-Future-Insight with the live Davara
-Baseline (Claude); everything else remains static.
+out of the box. Set `ANTHROPIC_API_KEY` to power Natari and Nat-Future-Insight with the live
+Davara Baseline (Claude); everything else remains static.
 
 ## The Original Votus.One
 

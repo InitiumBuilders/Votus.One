@@ -321,12 +321,11 @@ PromptHero is a steward, not a backseat driver.
 
 ---
 
-*PromptHero lives at [Votus.One](https://votus.one) — the whole site is
-PromptHero, including complete build blueprints for a personal dashboard on
-Windows, macOS, Linux, Android, iPhone, or the web, and August, the Motus
-Mentor.*
+*PromptHero lives at [Votus.One](https://votus.one) — its home page carries
+complete build blueprints for a personal dashboard on Windows, macOS, Linux,
+Android, iPhone, or the web, and August, the Motus Mentor.*
 
 *The founding prompt that set this journey off is preserved, verbatim, in
-[INITIUM.md](./INITIUM.md).*
+[INITIUM.md](https://Votus.One/initium.md).*
 
 **Find Strength From Within. 🔥 An Ember To Remember.**

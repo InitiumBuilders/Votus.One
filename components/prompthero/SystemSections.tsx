@@ -49,7 +49,7 @@ function Section({ kicker, title, children }: { kicker: string; title: string; c
   return (
     <section style={sectionStyle}>
       <div style={columnStyle}>
-        <Reveal><p style={kickerStyle}>{kicker}</p></Reveal>
+        <Reveal sound="reveal"><p style={kickerStyle}>{kicker}</p></Reveal>
         <Reveal delay={0.1}><h2 style={h2Style}>{title}</h2></Reveal>
         {children}
       </div>
@@ -143,6 +143,7 @@ export function Progression() {
           0%, 100% { box-shadow: 0 0 10px rgba(255,209,102,0.4); }
           50% { box-shadow: 0 0 24px rgba(255,209,102,0.8), 0 0 40px rgba(255,209,102,0.25); }
         }
+        @media (prefers-reduced-motion: reduce) { .ph-twinkle, .ph-pulse { animation: none !important; } }
       `}</style>
       <Reveal delay={0.1}>
         <p style={{ ...bodyStyle, marginBottom: 48 }}>
@@ -168,10 +169,10 @@ export function Progression() {
                 fontSize: 12, letterSpacing: "0.08em", padding: "8px 16px", borderRadius: 100,
                 display: "inline-flex", alignItems: "center", gap: 8,
                 border: `1px solid ${i < 3 ? "rgba(255,209,102,0.3)" : "rgba(0,212,255,0.14)"}`,
-                color: i < 3 ? gold : "rgba(0,212,255,0.6)",
+                color: i < 3 ? gold : "rgba(0,212,255,0.8)",
                 background: i < 3 ? "rgba(255,209,102,0.04)" : "rgba(0,212,255,0.03)",
               }}>
-                <span aria-hidden style={{ fontSize: 10, animation: "badge-twinkle 3.6s ease-in-out infinite", animationDelay: `${(i % 6) * 0.55}s` }}>✦</span>
+                <span aria-hidden className="ph-twinkle" style={{ fontSize: 10, animation: "badge-twinkle 3.6s ease-in-out infinite", animationDelay: `${(i % 6) * 0.55}s` }}>✦</span>
                 {b}
               </span>
             ))}
@@ -192,7 +193,7 @@ export function Progression() {
             }} />
             {RANKS.map(([r, c], i) => (
               <div key={r} style={{ position: "relative", marginBottom: i === 7 ? 0 : 24 }}>
-                <span aria-hidden style={{
+                <span aria-hidden className="ph-pulse" style={{
                   position: "absolute", left: -26, top: 6, width: 9, height: 9, borderRadius: "50%",
                   background: i === 7 ? "rgba(255,209,102,0.9)" : `rgba(0,212,255,${0.22 + i * 0.09})`,
                   boxShadow: i === 7 ? "0 0 14px rgba(255,209,102,0.6)" : `0 0 8px rgba(0,212,255,${0.14 + i * 0.05})`,
@@ -200,7 +201,7 @@ export function Progression() {
                 }} />
                 <p style={{
                   fontSize: i === 7 ? 17 : 14.5, fontWeight: 300, letterSpacing: "0.12em", marginBottom: 4,
-                  color: i === 7 ? gold : `rgba(250,250,250,${0.42 + i * 0.07})`,
+                  color: i === 7 ? gold : `rgba(250,250,250,${0.6 + i * 0.05})`,
                   textShadow: i === 7 ? "0 0 20px rgba(255,209,102,0.3)" : "none",
                 }}>
                   <span style={{ color: faint, fontSize: 11, letterSpacing: "0.2em", marginRight: 10 }}>0{i + 1}</span>
