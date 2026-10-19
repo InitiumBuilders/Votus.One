@@ -57,6 +57,10 @@ export default function CrisisCard({ palette, voice }: { palette: CrisisPalette;
           </li>
         ))}
       </ul>
+      <p style={{ margin: "12px 0 0", fontSize: 14, lineHeight: 1.6 }}>
+        Took something, or in danger right now? Call your local emergency number —{" "}
+        <a href="tel:911" style={{ color: palette.accent, fontWeight: 600 }}>911</a> in the US.
+      </p>
     </aside>
   );
 }

@@ -121,11 +121,10 @@ function parseMeta(metaStr: string | undefined): Record<string, string> {
 
 // Turn the streaming marker text into segments. Robust to a partial marker at
 // the very end of the buffer (it's simply trimmed until the next chunk arrives).
-function parseMarkup(raw: string, streaming = false): Segment[] {
+function parseMarkup(raw: string): Segment[] {
   const trimTrailing = (t: string) => t.replace(/\[\[[^\]]*$/, "").trim();
-  // Mid-stream the tail may hold half a marker — "[", "[[MARK|days=12]" — so
-  // it waits, unseen, for the rest. Only a marker's own shape is held back.
-  // Sealed, the same shape can only be debris from a cut channel — strip it.
+  // A marker-shaped tail — "[", "[[MARK|days=12]" — is half a marker still in
+  // flight, or debris from a cut channel. Either way it is never shown.
   const trimTail = (t: string) => trimTrailing(t.replace(/\[(?:\[[A-Za-z]*(?:\|[^\]\n]*)*\]?)?\s*$/, ""));
   const markers: { index: number; len: number; kind: string; meta: string }[] = [];
   let m: RegExpExecArray | null;
@@ -142,10 +141,12 @@ function parseMarkup(raw: string, streaming = false): Segment[] {
   for (let i = 0; i < markers.length; i++) {
     const start = markers[i].index + markers[i].len;
     const end = i + 1 < markers.length ? markers[i + 1].index : raw.length;
-    const text = (i === markers.length - 1 || !streaming ? trimTail : trimTrailing)(raw.slice(start, end));
+    // Before a later complete marker, a marker-shaped tail can only be debris.
+    const text = trimTail(raw.slice(start, end));
     segs.push({ kind: markers[i].kind, text, meta: parseMeta(markers[i].meta) });
   }
-  return segs;
+  // A Mark with no window was voided by a cut channel — it never shows.
+  return segs.filter((s) => s.kind !== "mark" || s.meta.days);
 }
 
 const segmentsToText = (segs?: Segment[]) =>
@@ -364,7 +365,7 @@ export default function NatFutureExperience() {
     const onChunk = (chunk: string) => {
       acc += chunk;
       if (firstToken && acc.trim().length) { firstToken = false; setDivining(false); }
-      const segs = parseMarkup(acc, true);
+      const segs = parseMarkup(acc);
       if (segs.length > segCount) { segCount = segs.length; if (!crisis) vibrate(6); }
       setMessages((prev) => prev.map((m) => (m.id === oid ? { ...m, raw: acc, segments: segs } : m)));
       scrollDown();
@@ -419,7 +420,9 @@ export default function NatFutureExperience() {
     Sound.humStop();
 
     // Crisis and sensitive asks never become a Mark; crisis gets no chime.
-    const markSeg = !pinned && !sensitive && finalSegs.find((s) => s.kind === "mark" && s.meta.days && s.text);
+    // …nor does a Mark the channel was cut inside.
+    const cutAt = finalSegs.findIndex((s) => s.kind === "seal" && s.meta.cut);
+    const markSeg = !pinned && !sensitive && finalSegs.find((s, i) => s.kind === "mark" && s.meta.days && s.text && i !== cutAt - 1);
     if (markSeg) addMark(text, markSeg, asOracle);
     if (!pinned && isReading(finalSegs)) { if (soundRef.current) Sound.chime(); vibrate([10, 40, 12]); }
     setAnnounce(announceText(asOracle, shownSegments({ id: oid, role: "oracle", segments: finalSegs, crisis: pinned, sensitive }), pinned));

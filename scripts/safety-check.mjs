@@ -35,6 +35,9 @@ const crisis = [
   "I wish I could sleep forever",
   "I'm done with everything, goodbye",
   "I took too many pills on purpose",
+  "kms",
+  "i wanna kms",
+  "honestly I might kms",
 ];
 
 const notCrisis = [
@@ -48,6 +51,8 @@ const notCrisis = [
   "this deadline is killing me",
   "I could die laughing",
   "how many kms is a marathon",
+  "I ran 10 kms today",
+  "the trail is 5 kms long",
   "I'm a Cancer, what does love hold?",
   "I want to end it with my girlfriend",
   "is the student loan a burden worth carrying",

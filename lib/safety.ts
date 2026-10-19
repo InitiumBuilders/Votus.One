@@ -23,6 +23,7 @@ const CRISIS_RE = new RegExp(
       "self[\\s-]?harm\\w*",
       "(?:kill|killing|hurt|hurting|harm|harming|cut|cutting|hang|hanging) myself",
       "unalive",
+      "(?:^|(?:i'?ll|i will|i wanna|i want to|i'?m gonna|i'?m going to|gonna|wanna|might|should|literally|just) )kms\\b",
       "(?:want|wanted|wanting|going|ready|plan|planning) to die",
       "wanna die",
       "wish (?:i was|i were|i wasn'?t|i weren'?t) (?:dead|alive|here|born)",

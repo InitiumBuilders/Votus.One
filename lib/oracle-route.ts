@@ -33,6 +33,7 @@ export function cleanHistory(history: unknown): Turn[] {
     const { role, content } = t as Partial<Turn>;
     if ((role !== "user" && role !== "assistant") || typeof content !== "string" || !content.trim()) continue;
     const c = clip(content, MAX_TURN);
+    if (!c.trim()) continue;
     if (total + c.length > MAX_HISTORY) break;
     total += c.length;
     kept.unshift({ role, content: c });
@@ -130,13 +131,13 @@ function reasonOf(err: unknown): string {
 }
 
 // A reading cut mid-stream still ends where the eye can see it. If the cut
-// fell inside a [[MARKER|…, void its numbers before closing it, so no
-// half-cast Mark is ever kept.
+// fell inside a [[MARKER|…, void its numbers before closing it; the seal is
+// marked |cut=1 so the clients never file a Mark the cut landed inside.
 export function cutSeal(said: string, line: string): string {
-  if (/\[\[SEAL\]\]/i.test(said)) return "";
+  if (/\[\[SEAL[\]|]/i.test(said)) return "";
   const open = said.lastIndexOf("[[");
   const dangling = open > said.lastIndexOf("]]") && said.slice(open).includes("|") && !said.endsWith("]");
-  return `${dangling ? "|days=|n=]]" : ""}\n[[SEAL]]\n${line}`;
+  return `${dangling ? "|days=|n=]]" : ""}\n[[SEAL|cut=1]]\n${line}`;
 }
 
 /**

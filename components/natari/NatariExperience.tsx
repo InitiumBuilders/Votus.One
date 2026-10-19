@@ -71,6 +71,8 @@ function mergeMarks(mine: Mark[], theirs: Mark[]): Mark[] {
 
 // Calendar days on this device's clock — "tomorrow" means tomorrow, not 24 hours.
 const startOfDay = (t: number) => new Date(t).setHours(0, 0, 0, 0);
+// N calendar days on, same wall-clock time — DST never moves a window.
+const addDays = (t: number, n: number) => { const d = new Date(t); d.setDate(d.getDate() + n); return d.getTime(); };
 const daysUntil = (t: number, from: number) => Math.round((startOfDay(t) - startOfDay(from)) / DAY);
 const dueDate = (t: number) => new Date(t).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 const dueTime = (t: number) => new Date(t).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
@@ -116,7 +118,8 @@ function parseMarkup(raw: string): Segment[] {
     const end = k + 1 < ms.length ? ms[k + 1].i : raw.length;
     segs.push({ kind: mk.kind, text: trim(raw.slice(start, end)), meta: parseMeta(mk.meta) });
   });
-  return segs;
+  // A Mark with no window was voided by a cut channel — it never shows.
+  return segs.filter((s) => s.kind !== "mark" || s.meta.days);
 }
 
 const segsToText = (s?: Segment[]) =>
@@ -370,16 +373,18 @@ export default function NatariExperience() {
 
     // Crisis and sensitive asks never become Marks.
     let markNote = "";
-    const mk = crisis || sensitive ? undefined : finalSegs.find((s) => s.kind === "mark" && s.meta.days && s.text);
+    // …nor does a Mark the channel was cut inside.
+    const cutAt = finalSegs.findIndex((s) => s.kind === "seal" && s.meta.cut);
+    const mk = crisis || sensitive ? undefined : finalSegs.find((s, i) => s.kind === "mark" && s.meta.days && s.text && i !== cutAt - 1);
     if (mk) {
       const days = parseInt(mk.meta.days, 10);
       if (days >= 1) {
         const created = Date.now();
         setMarks((p) => [{
           id: `${created}-${Math.floor(Math.random() * 1e6)}`, who: asWho, question: text,
-          text: mk.text, createdAt: created, dueAt: created + days * DAY, status: "pending", updatedAt: created,
+          text: mk.text, createdAt: created, dueAt: addDays(created, days), status: "pending", updatedAt: created,
         }, ...p]);
-        markNote = ` A Mark was added to your ledger, due ${dueDate(created + days * DAY)}.`;
+        markNote = ` A Mark was added to your ledger, due ${dueDate(addDays(created, days))}.`;
       }
     }
     // Announce once, when the reading seals — never per token.
