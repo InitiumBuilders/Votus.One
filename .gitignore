@@ -7,6 +7,7 @@ node_modules/
 .next/
 out/
 dist/
+*.tsbuildinfo
 build/
 
 # Environment — NEVER commit these
