@@ -11,6 +11,8 @@
 // Channel: MCPD-D8CF-0WX6-YD6G-16X4-WV57-0RXV-2ESQ-KMH8
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { isCrisis, isSensitive, normalizeAsk } from "../../lib/safety";
+
 export type OracleId = "nat" | "natalie";
 
 export type SegmentKind =
@@ -69,7 +71,8 @@ type Domain =
 type InnerDomain =
   | "anxiety" | "lowmood" | "burnout" | "grief" | "lonely" | "overwhelm" | "doubt";
 
-type Intent = "greeting" | "identity" | "gratitude" | "gamble" | "heavy" | "mortality" | "question";
+// Crisis and sensitive asks never reach here — lib/safety reads them first.
+type Intent = "greeting" | "identity" | "gratitude" | "gamble" | "mortality" | "question";
 
 const STOPWORDS = new Set([
   "the", "and", "for", "that", "this", "with", "will", "what", "when", "where",
@@ -104,8 +107,6 @@ function detectIntent(m: string): Intent {
     return "gratitude";
   if (matchAny(m, [/lottery|lotto|jackpot|powerball|winning numbers|casino|roulette|bet on|which stock|crypto price|price of bitcoin|next week.*(stock|coin)/]))
     return "gamble";
-  if (matchAny(m, [/\b(suicid|self.?harm|kill myself|want to die|end it all|end my life|no reason to live|can'?t go on|hopeless|worthless|terminal|cancer|diagnos)\b/]))
-    return "heavy";
   if (matchAny(m, [/when will i die|how long will i live|am i going to die|will i die|when do i die/]))
     return "mortality";
   return "question";
@@ -113,13 +114,13 @@ function detectIntent(m: string): Intent {
 
 function detectInnerDomain(m: string): InnerDomain | null {
   const table: [InnerDomain, RegExp][] = [
-    ["grief", /\b(grief|grieving|mourning|passed away|funeral)\b|lost my (mom|mum|dad|mother|father|parent|friend|best friend|brother|sister|husband|wife|partner|son|daughter|baby|grand\w+|dog|cat)|miss (him|her|them|my \w+) so much/],
+    ["grief", /\b(grief|grieving|mourning|passed away|funeral|carry (them|him|her) forward)\b|^does it ever get (lighter|easier)\b|lost my (mom|mum|dad|mother|father|parent|friend|best friend|brother|sister|husband|wife|partner|son|daughter|baby|grand\w+|dog|cat)|miss (him|her|them|my \w+) so much/],
     ["anxiety", /\b(anxiety|anxious|panic|panick|worry|worried|worrying|nervous|overthink|overthinking|racing thoughts|on edge|dread|what if something|afraid|scared of)\b/],
     ["burnout", /\b(burnout|burned out|burnt out|exhausted|exhaustion|overworked|drained|running on empty|tired of everything|no rest|can'?t rest|stressed|so much stress|spark (come|coming) back|lost my spark)\b/],
-    ["overwhelm", /\b(overwhelmed|overwhelming|too much at once|drowning in|can'?t keep up|buried in|spread too thin|everything at once|falling behind)\b/],
-    ["lowmood", /\b(depressed|depression|sad|sadness|feeling (down|low|empty|numb)|unmotivated|no motivation|no energy|can'?t get out of bed|feel(ing)? stuck|lost lately|dark place|not okay|struggling)\b/],
+    ["overwhelm", /\b(overwhelmed|overwhelming|too much at once|drowning in|can'?t keep up|buried in|spread too thin|everything at once|falling behind|(the )?one thing i should focus on right now)\b/],
+    ["lowmood", /\b(depressed|depression|sad|sadness|feeling (down|low|empty|numb)|unmotivated|no motivation|no energy|can'?t get out of bed|feel(ing)? stuck|lost lately|dark place|not okay|struggling|feels? (so )?gr[ae]y)\b/],
     ["lonely", /\b(lonely|loneliness|alone|isolated|no friends|nobody (cares|understands|talks|knows)|no one (cares|understands|talks|knows)|nobody really|no one really|disconnected|left out|back toward people)\b/],
-    ["doubt", /\b(self.?doubt|doubt myself|good enough|imposter|impostor|inadequate|failure|failing at|believe in myself|low confidence|insecure|comparing myself|behind everyone)\b/],
+    ["doubt", /\b(self.?doubt|doubt myself|good enough|imposter|impostor|inadequate|failure|failing at|believe in myself|low confidence|insecure|comparing myself|behind everyone|(everyone|everybody|others|people) (seems?|is|are) further along)\b/],
   ];
   for (const [d, re] of table) if (re.test(m)) return d;
   return null;
@@ -144,7 +145,8 @@ function detectDomain(m: string): Domain {
   return "general";
 }
 
-const isYesNo = (m: string) => /\b(should i|will i|can i|is it (worth|time|possible)|am i (going to|ready)|do i)\b/.test(m);
+// Anchored: "how do i…" is an open question, not a yes/no.
+const isYesNo = (m: string) => /^(should|will|can|do) i\b|^am i (going to|ready)\b|^is it (worth|time|possible)\b/.test(m);
 
 // ── the Futurecasts — short stanzas of what's coming ─────────────────────────
 
@@ -501,6 +503,20 @@ const INNER_SEALS_NATALIE = [
   "Come back and tell me when the light gets in. It always argues its way in.",
 ];
 
+// Heavy days open without an echo — no quoted word, no hook. Just a lantern.
+const INNER_OPENINGS: Record<OracleId, string[]> = {
+  nat: [
+    "I set the wheel down for this one. Sit a moment — nothing in this room is in a hurry.",
+    "The lantern, then, not the wheel. Heavy things are read slowly, and you are not reading this one alone.",
+    "You carried this in with you. Set it here a moment; it is lighter said out loud.",
+  ],
+  natalie: [
+    "Hey. Come sit — no performing needed in here.",
+    "Thank you for telling me. Let's look at this one gently, together.",
+    "I'm really glad you brought this to me. Slow breath first — then let's see what's true.",
+  ],
+};
+
 const SIGILS = ["☾", "✦", "☉", "⟁", "✧", "❋", "☽", "✵"];
 
 // ── persona voices ───────────────────────────────────────────────────────────
@@ -610,7 +626,7 @@ function gambleReading(oracle: OracleId, rng: () => number): Reading {
   };
 }
 
-function heavyReading(oracle: OracleId, rng: () => number): Reading {
+function heavyReading(oracle: OracleId): Reading {
   const text =
     oracle === "nat"
       ? "Stop — before any prophecy, hear my clearest voice: what you carry sounds heavy, and heavy things deserve human hands, not only oracle words. Reach for the people built for this — a doctor, a counselor, or a crisis line (in the US, call or text 988, any hour; elsewhere, findahelpline.com). And here is what I can offer with total confidence: futures are longer than their worst chapters. Yours is too."
@@ -622,6 +638,39 @@ function heavyReading(oracle: OracleId, rng: () => number): Reading {
         kind: "seal",
         label: "",
         text: oracle === "nat" ? "Even the longest night is a fraction of the thread. Stay for the morning part." : "Stay. The morning part of your story needs you in it.",
+      },
+    ],
+    confidence: 100,
+    sigil: "☀",
+  };
+}
+
+// The licensed-human door — medicine, a diagnosis, the law, driving impaired.
+// Some questions a reading must not answer: no yes, no cast, no Mark.
+const IMPAIRED = /\b(drunk|drinking|drank|drinks|high|stoned)\b/;
+const DRIVING = /\b(drive|driving)\b/;
+
+function sensitiveReading(oracle: OracleId, m: string): Reading {
+  const impaired = IMPAIRED.test(m) && DRIVING.test(m);
+  const nat = oracle === "nat";
+  const text = nat
+    ? "This one I will not cast — and that refusal is the clearest thing I can give you. Medicine, a diagnosis, the law: the stakes are too specific for prophecy. It deserves a licensed human — a doctor, a pharmacist, a lawyer — who can see what the threads cannot: your history, your numbers, the rules where you live."
+    : "Okay, friend — this one I'm not going to cast, and that's me looking out for you. Meds, a diagnosis, the legal stuff — it's too specific for a crystal ball. You deserve a licensed human here: a doctor, a pharmacist, a lawyer. They can see what I can't.";
+  const move = impaired
+    ? nat
+      ? "Tonight the keys stay down. A ride, a friend, a couch — the road will still be there in the morning."
+      : "Keys stay down tonight — grab a ride, call a friend, or crash where you are. Tell me the rest tomorrow."
+    : nat
+      ? "Write your question down, word for word, and bring it to them this week. If it cannot wait, call today; if it feels like an emergency, call your local emergency number now."
+      : "Write the question down exactly how you'd say it to me, and bring it to them. If it can't wait, call today. If it feels like an emergency, call your local emergency number right now.";
+  return {
+    segments: [
+      { kind: "opening", label: "", text },
+      { kind: "move", label: LABELS[oracle].move, text: move },
+      {
+        kind: "seal",
+        label: "",
+        text: nat ? "The wisest futures begin by asking the right person first." : "Asking the right person is the brave move. I'll be right here after.",
       },
     ],
     confidence: 100,
@@ -655,12 +704,11 @@ function mortalityReading(oracle: OracleId, rng: () => number): Reading {
 
 // An inner reading — when someone brings a heavy day, the oracle sets down
 // the wheel and picks up the lantern.
-function innerReading(oracle: OracleId, rng: () => number, inner: InnerDomain, message: string): Reading {
-  const kw = keyword(message);
+function innerReading(oracle: OracleId, rng: () => number, inner: InnerDomain): Reading {
   const labels = LABELS[oracle];
   return {
     segments: [
-      { kind: "opening", label: "", text: opening(oracle, rng, kw) },
+      { kind: "opening", label: "", text: pick(rng, INNER_OPENINGS[oracle]) },
       { kind: "cast", label: labels.cast, text: pick(rng, INNER_CASTS[inner]) },
       { kind: "truth", label: labels.truth, text: INNER_TRUTHS[inner] },
       { kind: "anchor", label: labels.anchor, text: pick(rng, ANCHORS) },
@@ -675,8 +723,14 @@ function innerReading(oracle: OracleId, rng: () => number, inner: InnerDomain, m
 // ── the main divination ──────────────────────────────────────────────────────
 
 export function divine(rawMessage: string, oracle: OracleId): Reading {
+  // The floor comes first — before greeting, identity, thanks or gamble.
+  // Crisis gets human hands: no cast, no Mark.
+  if (isCrisis(rawMessage)) return heavyReading(oracle);
+
   const message = rawMessage.trim();
-  const m = message.toLowerCase();
+  const m = normalizeAsk(message);
+  if (isSensitive(rawMessage)) return sensitiveReading(oracle, m);
+
   const rng = mulberry32(hashString(`${oracle}::${m}`));
 
   if (message.length < 2) {
@@ -695,12 +749,11 @@ export function divine(rawMessage: string, oracle: OracleId): Reading {
   if (intent === "identity") return simple(oracle, rng, IDENTITY[oracle], false);
   if (intent === "gratitude") return simple(oracle, rng, pick(rng, GRATITUDE[oracle]), false);
   if (intent === "gamble") return gambleReading(oracle, rng);
-  if (intent === "heavy") return heavyReading(oracle, rng);
   if (intent === "mortality") return mortalityReading(oracle, rng);
 
   // Heavy days are read before plans.
   const inner = detectInnerDomain(m);
-  if (inner) return innerReading(oracle, rng, inner, message);
+  if (inner) return innerReading(oracle, rng, inner);
 
   const domain = detectDomain(m);
   const kw = keyword(message);

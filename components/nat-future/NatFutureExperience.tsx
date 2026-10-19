@@ -12,6 +12,9 @@ import Pathways from "./Pathways";
 import Marks, { type Mark } from "./Marks";
 import BreathePacer from "./BreathePacer";
 import { Sound } from "./SoundEngine";
+import CrisisCard, { type CrisisPalette } from "../CrisisCard";
+import { isCrisis, isSensitive } from "../../lib/safety";
+import { dueAtFrom, mergeMarks, readMarks } from "./ledger";
 import {
   divine, readingToMarkup, dailyOmen, SUGGESTED_ASKS,
   type OracleId,
@@ -39,11 +42,14 @@ interface ChatMessage {
   streaming?: boolean;
   confidence?: number;
   sigil?: string;
+  crisis?: boolean; // the question carried crisis — the card stays pinned under this reading
+  sensitive?: boolean; // medicine, the law — a licensed human, never a Mark
 }
 
 const STORAGE_KEY = "nat-future-insight/v2";
 const MARKS_KEY = "nat-future-insight/marks/v1";
 const SOUND_KEY = "nat-future-insight/sound/v1";
+const KEEP_MESSAGES = 60; // a sitting remembers its last sixty turns
 
 const ORACLE_NAMES: Record<OracleId, string> = { nat: "Nat-Future", natalie: "Natalie" };
 const ORACLE_SIGILS: Record<OracleId, string> = { nat: "☉", natalie: "☾" };
@@ -65,6 +71,26 @@ const SEGMENT_COLORS: Record<string, string> = {
 const SEGMENT_LABELS: Record<OracleId, Record<string, string>> = {
   nat: { cast: "The Futurecast", truth: "Already True", mark: "Mark the Date", move: "The Move", anchor: "Carry This" },
   natalie: { cast: "What I See", truth: "Already True", mark: "Calling It Now", move: "Do This (Trust Me)", anchor: "Hold This" },
+};
+
+// The crisis card wears the chamber's verified ink: moon and gold both clear
+// 7:1 on this near-opaque night.
+const CRISIS_PALETTE: CrisisPalette = {
+  ink: moon,
+  accent: gold,
+  surface: "rgba(16,12,36,0.92)",
+  border: "1px solid rgba(255,209,102,0.4)",
+  font: sans,
+};
+const CRISIS_VOICE: Record<OracleId, string> = {
+  nat: "Before any thread: you don't have to carry this alone tonight. A real person is one tap away, any hour.",
+  natalie: "Friend, please reach out right now — you don't have to carry this alone. A real person is one tap away.",
+};
+
+// Visually hidden, still spoken.
+const SR_ONLY: React.CSSProperties = {
+  position: "absolute", width: 1, height: 1, padding: 0, margin: -1,
+  overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap", border: 0,
 };
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -95,8 +121,12 @@ function parseMeta(metaStr: string | undefined): Record<string, string> {
 
 // Turn the streaming marker text into segments. Robust to a partial marker at
 // the very end of the buffer (it's simply trimmed until the next chunk arrives).
-function parseMarkup(raw: string): Segment[] {
+function parseMarkup(raw: string, streaming = false): Segment[] {
   const trimTrailing = (t: string) => t.replace(/\[\[[^\]]*$/, "").trim();
+  // Mid-stream the tail may hold half a marker — "[", "[[MARK|days=12]" — so
+  // it waits, unseen, for the rest. Only a marker's own shape is held back.
+  // Sealed, the same shape can only be debris from a cut channel — strip it.
+  const trimTail = (t: string) => trimTrailing(t.replace(/\[(?:\[[A-Za-z]*(?:\|[^\]\n]*)*\]?)?\s*$/, ""));
   const markers: { index: number; len: number; kind: string; meta: string }[] = [];
   let m: RegExpExecArray | null;
   MARKER.lastIndex = 0;
@@ -104,7 +134,7 @@ function parseMarkup(raw: string): Segment[] {
 
   const segs: Segment[] = [];
   if (markers.length === 0) {
-    const t = trimTrailing(raw);
+    const t = trimTail(raw);
     return t ? [{ kind: "opening", text: t, meta: {} }] : [];
   }
   const pre = trimTrailing(raw.slice(0, markers[0].index));
@@ -112,7 +142,7 @@ function parseMarkup(raw: string): Segment[] {
   for (let i = 0; i < markers.length; i++) {
     const start = markers[i].index + markers[i].len;
     const end = i + 1 < markers.length ? markers[i + 1].index : raw.length;
-    const text = trimTrailing(raw.slice(start, end));
+    const text = (i === markers.length - 1 || !streaming ? trimTail : trimTrailing)(raw.slice(start, end));
     segs.push({ kind: markers[i].kind, text, meta: parseMeta(markers[i].meta) });
   }
   return segs;
@@ -123,6 +153,24 @@ const segmentsToText = (segs?: Segment[]) =>
 
 const isReading = (segs?: Segment[]) =>
   !!segs && segs.some((s) => ["cast", "mark", "move", "truth", "sight", "bold"].includes(s.kind));
+
+// The certainty meter belongs to forecasts only — a reading with a dated call.
+const isForecast = (segs?: Segment[]) => !!segs && segs.some((s) => s.kind === "mark" || s.kind === "bold");
+
+// A crisis or sensitive reading never shows a dated call, even if one was cast.
+const shownSegments = (msg: ChatMessage) =>
+  (msg.crisis || msg.sensitive ? (msg.segments ?? []).filter((s) => s.kind !== "mark" && s.kind !== "bold") : msg.segments ?? []);
+
+// One plain passage for the screen reader, spoken once — when the reading seals.
+function announceText(who: OracleId, segs: Segment[], crisis: boolean): string {
+  const labels = SEGMENT_LABELS[who];
+  const body = segs.filter((s) => s.text).map((s) => (labels[s.kind] ? `${labels[s.kind]}: ${s.text}` : s.text)).join(" ");
+  return `${ORACLE_NAMES[who]}: ${body}${crisis ? " Crisis support is below: call or text 988, or visit findahelpline.com." : ""}`;
+}
+
+// What a sitting keeps: the words, never the parsed copy (restore re-parses raw).
+const toSaved = ({ id, role, oracle, text, raw, confidence, sigil, crisis, sensitive }: ChatMessage): ChatMessage =>
+  ({ id, role, oracle, text, raw, confidence, sigil, crisis, sensitive });
 
 function vibrate(pattern: number | number[]) {
   try {
@@ -149,17 +197,24 @@ export default function NatFutureExperience() {
   const [soundOn, setSoundOn] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [now, setNow] = useState(0);
+  const [announce, setAnnounce] = useState("");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef(messages);
   const oracleRef = useRef(oracle);
   const abortRef = useRef<AbortController | null>(null);
+  const soundRef = useRef(soundOn);
+  const followRef = useRef(true);
+  const marksLoaded = useRef(false);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => { oracleRef.current = oracle; }, [oracle]);
-
-  const sound = soundOn ? Sound : null;
+  useEffect(() => {
+    soundRef.current = soundOn;
+    if (!soundOn) Sound.humStop(); // mute means now, not after the seal
+  }, [soundOn]);
 
   // Restore a past sitting; read today's omen and the wall clock (client-only).
+  // Each key restores on its own — a broken sitting must never cost the ledger.
   useEffect(() => {
     setOmen(dailyOmen(new Date()));
     setNow(Date.now());
@@ -169,33 +224,78 @@ export default function NatFutureExperience() {
         const saved = JSON.parse(raw) as { oracle: OracleId; messages: ChatMessage[] };
         if (saved.messages?.length) {
           nextId = Math.max(...saved.messages.map((m) => m.id)) + 1;
-          setMessages(saved.messages.map((m) => (m.role === "oracle" ? { ...m, streaming: false, segments: parseMarkup(m.raw ?? "") } : m)));
+          setMessages(saved.messages.map((m, i, all) => {
+            if (m.role !== "oracle") return m;
+            // Older sittings carry no flags — read them again from the question.
+            const q = all[i - 1]?.role === "user" ? all[i - 1].text ?? "" : "";
+            return { ...m, streaming: false, segments: parseMarkup(m.raw ?? ""), crisis: m.crisis ?? isCrisis(q), sensitive: m.sensitive ?? isSensitive(q) };
+          }));
           setOracle(saved.oracle === "natalie" ? "natalie" : "nat");
         }
       }
-      const rawMarks = localStorage.getItem(MARKS_KEY);
-      if (rawMarks) setMarks(JSON.parse(rawMarks) as Mark[]);
-      setSoundOn(localStorage.getItem(SOUND_KEY) === "1");
     } catch { /* a fresh sitting, then */ }
+    try {
+      const stored = localStorage.getItem(MARKS_KEY);
+      const restored = readMarks(stored);
+      if (restored) setMarks(restored);
+      // The ledger is written only once it was read — or there was none to read.
+      marksLoaded.current = !!restored || stored === null;
+    } catch { /* storage is closed — the ledger stays untouched */ }
+    try { setSoundOn(localStorage.getItem(SOUND_KEY) === "1"); } catch { /* */ }
     setHydrated(true);
-    return () => abortRef.current?.abort();
+    return () => { abortRef.current?.abort(); Sound.humStop(); };
   }, []);
 
+  // A sitting is saved when a reading seals, not on every token.
   useEffect(() => {
-    if (!hydrated) return;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ oracle, messages })); } catch { /* */ }
+    if (!hydrated || messages.some((m) => m.streaming)) return;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ oracle, messages: messages.slice(-KEEP_MESSAGES).map(toSaved) })); } catch { /* */ }
   }, [messages, oracle, hydrated]);
+  // Merge, never clobber: another tab may have written since this one read.
   useEffect(() => {
-    if (!hydrated) return;
-    try { localStorage.setItem(MARKS_KEY, JSON.stringify(marks)); } catch { /* */ }
+    if (!hydrated || !marksLoaded.current) return;
+    try {
+      const stored = localStorage.getItem(MARKS_KEY);
+      const merged = mergeMarks(marks, readMarks(stored) ?? []);
+      const json = JSON.stringify(merged);
+      if (json !== stored) localStorage.setItem(MARKS_KEY, json);
+      if (json !== JSON.stringify(marks)) setMarks(merged);
+    } catch { /* */ }
   }, [marks, hydrated]);
+  // Another tab touched the ledger — fold its Marks in.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== MARKS_KEY || !marksLoaded.current) return;
+      const incoming = readMarks(e.newValue);
+      if (incoming) setMarks((prev) => mergeMarks(prev, incoming));
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(SOUND_KEY, soundOn ? "1" : "0"); } catch { /* */ }
   }, [soundOn, hydrated]);
 
-  const scrollDown = useCallback(() => {
+  // Follow the reading only while the reader is at the end. Scrolling up to
+  // re-read lets go; returning to the bottom takes hold again.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    let lastTop = el.scrollTop;
+    const onScroll = () => {
+      if (el.scrollTop < lastTop - 2) followRef.current = false;
+      if (el.scrollHeight - el.scrollTop - el.clientHeight < 80) followRef.current = true;
+      lastTop = el.scrollTop;
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [entered]);
+
+  const scrollDown = useCallback((force = false) => {
+    if (force) followRef.current = true;
     requestAnimationFrame(() => {
+      if (!followRef.current) return;
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
     });
   }, []);
@@ -222,8 +322,9 @@ export default function NatFutureExperience() {
       question,
       text: seg.text,
       createdAt: created,
-      dueAt: created + days * 86400000,
+      dueAt: dueAtFrom(created, days),
       status: "pending",
+      updatedAt: created,
     };
     setMarks((prev) => [mark, ...prev]);
   }, []);
@@ -234,6 +335,10 @@ export default function NatFutureExperience() {
     if (!text || busy) return;
     setInput("");
     const asOracle = oracleRef.current;
+    // The floor, read before anything leaves the page: crisis pins the card and
+    // hushes the ceremony; a sensitive ask never becomes a Mark.
+    const crisis = isCrisis(text);
+    const sensitive = isSensitive(text);
     const history = buildHistory(messagesRef.current);
     // Ids are minted eagerly so the setMessages updater stays pure — React
     // StrictMode double-invokes updaters, and a nextId++ inside one would drift.
@@ -242,12 +347,13 @@ export default function NatFutureExperience() {
     setMessages((prev) => [
       ...prev,
       { id: uid, role: "user", text },
-      { id: oid, role: "oracle", oracle: asOracle, raw: "", segments: [], streaming: true },
+      { id: oid, role: "oracle", oracle: asOracle, raw: "", segments: [], streaming: true, crisis, sensitive },
     ]);
     setBusy(true);
     setDivining(true);
-    scrollDown();
-    if (sound) Sound.humStart();
+    setAnnounce("");
+    scrollDown(true);
+    if (soundRef.current && !crisis) Sound.humStart();
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -258,14 +364,15 @@ export default function NatFutureExperience() {
     const onChunk = (chunk: string) => {
       acc += chunk;
       if (firstToken && acc.trim().length) { firstToken = false; setDivining(false); }
-      const segs = parseMarkup(acc);
-      if (segs.length > segCount) { segCount = segs.length; vibrate(6); }
+      const segs = parseMarkup(acc, true);
+      if (segs.length > segCount) { segCount = segs.length; if (!crisis) vibrate(6); }
       setMessages((prev) => prev.map((m) => (m.id === oid ? { ...m, raw: acc, segments: segs } : m)));
       scrollDown();
     };
 
     // Primary: the live route (Claude when keyed, the local weave otherwise).
-    // Fallback: if the route itself is unreachable (a static host), weave here.
+    // Fallback: if the route is unreachable (a static host), refuses (any
+    // !ok — 400, 403, 429), or answers in silence, weave here.
     try {
       const res = await fetch("/api/oracle", {
         method: "POST",
@@ -281,6 +388,7 @@ export default function NatFutureExperience() {
         if (done) break;
         onChunk(dec.decode(value, { stream: true }));
       }
+      if (!acc.trim()) throw new Error("silent stream");
     } catch (err) {
       if (!(err instanceof DOMException && err.name === "AbortError") && !acc.trim()) {
         try {
@@ -297,22 +405,26 @@ export default function NatFutureExperience() {
 
     // If the sitting was cleared (or the component unmounted) mid-stream, don't
     // seal — no stray Mark, no chime, no state writes on a discarded reading.
-    if (controller.signal.aborted) return;
+    if (controller.signal.aborted) { Sound.humStop(); return; }
 
-    // Seal the reading.
+    // Seal the reading. If the live voice heard crisis the floor missed, its
+    // own 988 pins the card all the same.
     const finalSegs = parseMarkup(acc);
     const conf = confidenceFor(acc || text);
     const sig = sigilFor(acc || text);
-    setMessages((prev) => prev.map((m) => (m.id === oid ? { ...m, raw: acc, segments: finalSegs, streaming: false, confidence: conf, sigil: sig } : m)));
+    const pinned = crisis || /\b988\b/.test(acc);
+    setMessages((prev) => prev.map((m) => (m.id === oid ? { ...m, raw: acc, segments: finalSegs, streaming: false, confidence: conf, sigil: sig, crisis: pinned } : m)));
     setBusy(false);
     setDivining(false);
-    if (sound) Sound.humStop();
+    Sound.humStop();
 
-    const markSeg = finalSegs.find((s) => s.kind === "mark" && s.meta.days);
+    // Crisis and sensitive asks never become a Mark; crisis gets no chime.
+    const markSeg = !pinned && !sensitive && finalSegs.find((s) => s.kind === "mark" && s.meta.days && s.text);
     if (markSeg) addMark(text, markSeg, asOracle);
-    if (isReading(finalSegs)) { if (sound) Sound.chime(); vibrate([10, 40, 12]); }
+    if (!pinned && isReading(finalSegs)) { if (soundRef.current) Sound.chime(); vibrate([10, 40, 12]); }
+    setAnnounce(announceText(asOracle, shownSegments({ id: oid, role: "oracle", segments: finalSegs, crisis: pinned, sensitive }), pinned));
     scrollDown();
-  }, [busy, buildHistory, addMark, scrollDown, sound]);
+  }, [busy, buildHistory, addMark, scrollDown]);
 
   const enter = useCallback(() => {
     setEntered(true);
@@ -324,23 +436,25 @@ export default function NatFutureExperience() {
     const greeting = greetingMessage(next); // eager — keep the updater pure
     setOracle(next);
     setMessages((prev) => [...prev, greeting]);
-    scrollDown();
+    scrollDown(true);
   }, [oracle, busy, scrollDown]);
 
   const clearSitting = useCallback(() => {
     abortRef.current?.abort();
     setBusy(false);
     setDivining(false);
-    if (sound) Sound.humStop();
+    Sound.humStop(); // whatever the toggle says now, no hum outlives its sitting
+    setAnnounce("");
     setMessages([greetingMessage(oracleRef.current)]);
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* */ }
-  }, [sound]);
+  }, []);
 
   const setMarkStatus = useCallback((id: string, status: Mark["status"]) => {
-    setNow(Date.now());
-    setMarks((prev) => prev.map((m) => (m.id === id ? { ...m, status } : m)));
-    if (status === "true") { if (sound) Sound.chime(); vibrate([10, 30, 10]); }
-  }, [sound]);
+    const at = Date.now();
+    setNow(at);
+    setMarks((prev) => prev.map((m) => (m.id === id ? { ...m, status, updatedAt: at } : m)));
+    if (status === "true") { if (soundRef.current) Sound.chime(); vibrate([10, 30, 10]); }
+  }, []);
 
   const pendingMarks = useMemo(() => marks.filter((m) => m.status === "pending").length, [marks]);
 
@@ -360,8 +474,11 @@ export default function NatFutureExperience() {
         .nf-cursor { display: inline-block; width: 7px; height: 1.05em; margin-left: 3px; vertical-align: -2px; background: ${gold}; border-radius: 1px; animation: nf-cursor 1s ease-in-out infinite; }
         textarea.nf-input::placeholder { color: rgba(238,233,255,0.3); }
         textarea.nf-input:focus { outline: none; border-color: rgba(124,77,255,0.6) !important; }
-        @media (prefers-reduced-motion: reduce) { .nf-rise, .nf-enter-btn, .nf-cast-anim { animation: none !important; } }
+        @media (prefers-reduced-motion: reduce) { .nf-rise, .nf-enter-btn, .nf-cast-anim, .nf-cursor, .nf-shimmer, .nf-card { animation: none !important; } }
       `}</style>
+
+      {/* Sealed readings are spoken here, once — the list itself stays quiet while it streams. */}
+      <div role="status" aria-live="polite" aria-atomic="true" style={SR_ONLY}>{announce}</div>
 
       {!entered ? (
         <Portal omen={omen} onEnter={enter} />
@@ -541,10 +658,10 @@ function Chamber(props: {
       </header>
 
       {/* messages */}
-      <div ref={scrollRef} aria-live="polite" style={{ flex: 1, overflowY: "auto", padding: "22px 16px 12px", display: "flex", flexDirection: "column", gap: 18, overscrollBehavior: "contain" }}>
+      <div ref={scrollRef} aria-busy={busy} style={{ flex: 1, overflowY: "auto", padding: "22px 16px 12px", display: "flex", flexDirection: "column", gap: 18, overscrollBehavior: "contain" }}>
         {messages.map((m) => {
           if (m.role === "user") return <UserBubble key={m.id} text={m.text ?? ""} />;
-          if (!m.segments || m.segments.length === 0) return null; // divining — shown below
+          if ((!m.segments || m.segments.length === 0) && !m.crisis) return null; // divining — shown below
           return <OracleReading key={m.id} msg={m} />;
         })}
 
@@ -608,9 +725,12 @@ function Chamber(props: {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onAsk(input); }
+              // Enter that confirms an IME candidate is not a send.
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) { e.preventDefault(); onAsk(input); }
             }}
             placeholder={oracle === "nat" ? "Ask the oracle of tomorrow…" : "Tell Natalie what's really going on…"}
+            aria-label={oracle === "nat" ? "Your question for Nat-Future" : "Your question for Natalie"}
+            maxLength={4000}
             rows={1}
             enterKeyHint="send"
             style={{
@@ -638,11 +758,17 @@ function Chamber(props: {
         </form>
         <p style={{ margin: "8px 2px 0", fontSize: 9, letterSpacing: "0.1em", color: faint, textAlign: "center" }}>
           The oracle offers insight &amp; foresight for guidance and delight — not medical, legal, or financial advice.
-          In crisis? US: call/text 988 · elsewhere: findahelpline.com
+        </p>
+        {/* The one line that must always be legible and tappable. */}
+        <p style={{ margin: "4px 2px 0", fontSize: 11, letterSpacing: "0.06em", lineHeight: 1.6, color: goldSoft, textAlign: "center" }}>
+          In crisis? US: call/text{" "}
+          <a href="tel:988" style={{ color: gold, textDecoration: "underline" }}>988</a>
+          {" "}· elsewhere:{" "}
+          <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" style={{ color: gold, textDecoration: "underline" }}>findahelpline.com</a>
         </p>
       </footer>
 
-      {showPathways && <Pathways onAsk={onAsk} onClose={() => setShowPathways(false)} onBreathe={() => setShowBreathe(true)} />}
+      {showPathways && <Pathways onAsk={onAsk} busy={busy} onClose={() => setShowPathways(false)} onBreathe={() => setShowBreathe(true)} />}
       {showMarks && <Marks marks={marks} now={now} onSet={onSetMark} onClose={() => setShowMarks(false)} />}
       {showBreathe && <BreathePacer onClose={() => setShowBreathe(false)} />}
     </div>
@@ -689,19 +815,21 @@ function UserBubble({ text }: { text: string }) {
 
 function OracleReading({ msg }: { msg: ChatMessage }) {
   const who = msg.oracle ?? "nat";
-  const segs = msg.segments ?? [];
+  const segs = shownSegments(msg);
   const labels = SEGMENT_LABELS[who];
   const streaming = !!msg.streaming;
+  // A crisis reading shows its card before the first word; the bubble waits.
+  const hasWords = segs.length > 0;
 
   return (
     <div className="nf-rise" style={{ alignSelf: "flex-start", maxWidth: "94%", width: "100%" }}>
-      <div style={{ fontSize: 10, letterSpacing: "0.35em", textTransform: "uppercase", color: dim, margin: "0 0 8px 4px" }}>
+      <div style={{ display: hasWords ? "block" : "none", fontSize: 10, letterSpacing: "0.35em", textTransform: "uppercase", color: dim, margin: "0 0 8px 4px" }}>
         {ORACLE_SIGILS[who]} {ORACLE_NAMES[who]}
       </div>
       <div style={{
         padding: "22px 22px 18px", borderRadius: "4px 20px 20px 20px",
         background: "rgba(16,12,36,0.55)", border: "1px solid rgba(124,77,255,0.16)",
-        backdropFilter: "blur(10px)", display: "flex", flexDirection: "column", gap: 18,
+        backdropFilter: "blur(10px)", display: hasWords ? "flex" : "none", flexDirection: "column", gap: 18,
       }}>
         {segs.map((seg, i) => {
           const kind = seg.kind;
@@ -747,7 +875,7 @@ function OracleReading({ msg }: { msg: ChatMessage }) {
             </div>
           );
         })}
-        {!streaming && msg.confidence != null && isReading(segs) && (
+        {!streaming && msg.confidence != null && !msg.crisis && !msg.sensitive && isForecast(segs) && (
           <div style={{ animation: "nf-fade 1s ease both", display: "flex", alignItems: "center", gap: 8, marginTop: 2, paddingTop: 10, borderTop: "1px solid rgba(124,77,255,0.15)" }}>
             <span style={{ color: gold, fontSize: 13 }}>{msg.sigil}</span>
             <span style={{ fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: dim }}>
@@ -756,6 +884,8 @@ function OracleReading({ msg }: { msg: ChatMessage }) {
           </div>
         )}
       </div>
+      {/* Pinned under the reading — from the first moment, and after every reload. */}
+      {msg.crisis && <CrisisCard palette={CRISIS_PALETTE} voice={CRISIS_VOICE[who]} />}
     </div>
   );
 }
@@ -780,9 +910,9 @@ function CountUp({ to }: { to: number }) {
 
 function Divining({ oracle }: { oracle: OracleId }) {
   return (
-    <div className="nf-rise" style={{ alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 12, padding: "6px 4px" }}>
+    <div className="nf-rise" role="status" style={{ alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 12, padding: "6px 4px" }}>
       <OracleOrb size={40} divining />
-      <span style={{
+      <span className="nf-shimmer" style={{
         fontFamily: serif, fontStyle: "italic", fontSize: 14,
         background: `linear-gradient(90deg, ${dim} 25%, ${gold} 50%, ${dim} 75%)`,
         backgroundSize: "200% 100%", backgroundClip: "text", WebkitBackgroundClip: "text",

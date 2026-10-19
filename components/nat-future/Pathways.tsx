@@ -3,7 +3,11 @@
 // The Inner Pathways — a lantern-lit hall off the main chamber. One door for
 // every weather of the heart; behind each door, asks that open the exact
 // reading a heavy day needs. The anxiety door also offers the breath.
+// If the oracle is still speaking, a chosen ask is held — visibly — and sent
+// the moment the reading seals. Never dropped.
 
+import { useEffect, useState } from "react";
+import { useDialog } from "../useDialog";
 import { PATHWAYS } from "./oracle";
 import { dim, faint, gold, goldSoft, mid, moon, sans, serif, veilSoft } from "./theme";
 
@@ -11,13 +15,31 @@ export default function Pathways({
   onAsk,
   onClose,
   onBreathe,
+  busy = false,
 }: {
   onAsk: (text: string) => void;
   onClose: () => void;
   onBreathe: () => void;
+  busy?: boolean;
 }) {
+  const ref = useDialog<HTMLDivElement>(onClose);
+  const [held, setHeld] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!held || busy) return;
+    onAsk(held);
+    onClose();
+  }, [held, busy, onAsk, onClose]);
+
+  const choose = (ask: string) => {
+    if (busy) { setHeld(ask); return; }
+    onAsk(ask);
+    onClose();
+  };
+
   return (
     <div
+      ref={ref}
       role="dialog"
       aria-modal="true"
       aria-label="Inner Pathways"
@@ -39,6 +61,9 @@ export default function Pathways({
           <div style={{ fontSize: 11, color: dim, marginTop: 4, fontFamily: serif, fontStyle: "italic" }}>
             Real talk and hype for heavy days. All states welcome here.
           </div>
+          <div role="status" style={{ fontSize: 11, color: goldSoft, marginTop: held ? 6 : 0, fontFamily: sans }}>
+            {held ? "The oracle is still speaking — your ask is held and goes the moment it seals." : ""}
+          </div>
         </div>
         <button
           onClick={onClose}
@@ -57,6 +82,7 @@ export default function Pathways({
           {PATHWAYS.map((p, i) => (
             <div
               key={p.id}
+              className="nf-card"
               style={{
                 border: "1px solid rgba(124,77,255,0.25)", borderRadius: 18,
                 background: "rgba(20,16,43,0.55)", padding: "18px 18px 14px",
@@ -91,15 +117,18 @@ export default function Pathways({
                   <button
                     key={ask}
                     className="nf-chip"
-                    onClick={() => { onAsk(ask); onClose(); }}
+                    onClick={() => choose(ask)}
+                    aria-pressed={held === ask ? true : undefined}
                     style={{
                       textAlign: "left", padding: "10px 14px", borderRadius: 12, cursor: "pointer",
-                      border: "1px solid rgba(124,77,255,0.3)", background: "rgba(124,77,255,0.08)",
-                      color: mid, fontFamily: serif, fontSize: 13.5, lineHeight: 1.5,
+                      border: held === ask ? `1px solid ${gold}` : "1px solid rgba(124,77,255,0.3)",
+                      background: held === ask ? "rgba(255,209,102,0.08)" : "rgba(124,77,255,0.08)",
+                      color: held === ask ? gold : mid, fontFamily: serif, fontSize: 13.5, lineHeight: 1.5,
                       transition: "transform 0.15s ease", fontStyle: "normal",
                     }}
                   >
-                    ✧ {ask}
+                    {held === ask ? "☽" : "✧"} {ask}
+                    {held === ask && <span style={{ display: "block", fontFamily: sans, fontSize: 11, color: goldSoft, marginTop: 4 }}>held — sending when the oracle finishes</span>}
                   </button>
                 ))}
               </div>

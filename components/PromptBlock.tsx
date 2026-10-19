@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { copyText, srOnly } from "./prompthero/copyText";
 
 // A copyable, expandable, locally-editable prompt vessel.
 // Edits live only on this device (localStorage) — make it yours.
@@ -24,7 +25,7 @@ export default function PromptBlock({
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(text);
   const [customized, setCustomized] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"idle" | "done" | "failed">("idle");
 
   // Load any local customization after mount (avoids hydration mismatch).
   useEffect(() => {
@@ -47,19 +48,13 @@ export default function PromptBlock({
     try { localStorage.removeItem(storageKey); } catch { /* noop */ }
   };
 
+  // A true ✓ or an honest fallback: if the browser refuses, open the
+  // vessel so the words are right there to select by hand.
   const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(value);
-    } catch {
-      const ta = document.createElement("textarea");
-      ta.value = value;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2200);
+    const ok = await copyText(value);
+    setCopied(ok ? "done" : "failed");
+    if (!ok) setOpen(true);
+    setTimeout(() => setCopied("idle"), ok ? 2200 : 4200);
   };
 
   const smallBtn: React.CSSProperties = {
@@ -124,7 +119,7 @@ export default function PromptBlock({
             onClick={copy}
             style={{
               cursor: "pointer",
-              background: copied ? "rgba(0,212,255,0.18)" : "rgba(0,212,255,0.07)",
+              background: copied === "done" ? "rgba(0,212,255,0.18)" : "rgba(0,212,255,0.07)",
               border: "1px solid rgba(0,212,255,0.25)",
               borderRadius: 100, padding: "8px 18px",
               color: "rgba(0,212,255,0.85)", fontSize: 11,
@@ -132,20 +127,26 @@ export default function PromptBlock({
               transition: "all 0.3s", fontFamily: "inherit",
             }}
           >
-            {copied ? "Copied ✓" : "Copy Prompt"}
+            {copied === "done" ? "Copied ✓" : copied === "failed" ? "Select Below ↓" : "Copy Prompt"}
           </button>
+          <span role="status" style={srOnly}>
+            {copied === "done" ? `${title} copied to your clipboard.` : copied === "failed" ? "This browser blocked the copy. The text is open below to select by hand." : ""}
+          </span>
         </span>
       </div>
 
       {note && !open && (
-        <p style={{ padding: "0 18px 14px", fontSize: 12.5, lineHeight: 1.7, color: "rgba(250,250,250,0.35)", margin: 0 }}>
+        <p style={{ padding: "0 18px 14px", fontSize: 12.5, lineHeight: 1.7, color: "rgba(250,250,250,0.6)", margin: 0 }}>
           {note}
         </p>
       )}
 
       {open && editing ? (
         <div style={{ borderTop: "1px solid rgba(255,158,100,0.15)" }}>
+          {/* The edit field keeps a visible focus ring — ember, inside the frame. */}
+          <style>{`.pb-edit:focus-visible { outline: 1px solid rgba(255,158,100,0.6); outline-offset: -2px; }`}</style>
           <textarea
+            className="pb-edit"
             value={value}
             onChange={(e) => save(e.target.value)}
             spellCheck={false}
@@ -158,7 +159,6 @@ export default function PromptBlock({
               padding: "14px 18px",
               background: "transparent",
               border: "none",
-              outline: "none",
               resize: "vertical",
               whiteSpace: "pre-wrap",
               fontSize: 12.5,
@@ -168,7 +168,7 @@ export default function PromptBlock({
               boxSizing: "border-box",
             }}
           />
-          <p style={{ padding: "0 18px 14px", margin: 0, fontSize: 11.5, color: "rgba(255,158,100,0.55)", letterSpacing: "0.06em" }}>
+          <p style={{ padding: "0 18px 14px", margin: 0, fontSize: 11.5, color: "rgba(255,158,100,0.8)", letterSpacing: "0.06em" }}>
             ✎ Yours to shape — edits save to this device only. Reset brings back the original.
           </p>
         </div>

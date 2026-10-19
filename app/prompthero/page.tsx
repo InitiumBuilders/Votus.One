@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
-// The whole site is PromptHero now — shared /prompthero links come home.
+// PromptHero lives at the root — shared /prompthero links come home, for good (308).
 export default function PromptHeroRedirect() {
-  redirect("/");
+  permanentRedirect("/");
 }

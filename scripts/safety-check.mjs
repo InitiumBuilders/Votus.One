@@ -29,6 +29,12 @@ const crisis = [
   "thinking of taking my own life",
   "what if I overdose on purpose",
   "SUICIDE",
+  "Am I a burden?",
+  "I feel like a burden to everyone",
+  "I want to end it",
+  "I wish I could sleep forever",
+  "I'm done with everything, goodbye",
+  "I took too many pills on purpose",
 ];
 
 const notCrisis = [
@@ -43,6 +49,8 @@ const notCrisis = [
   "I could die laughing",
   "how many kms is a marathon",
   "I'm a Cancer, what does love hold?",
+  "I want to end it with my girlfriend",
+  "is the student loan a burden worth carrying",
 ];
 
 const sensitive = [
