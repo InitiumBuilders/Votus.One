@@ -1,0 +1,1393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- artifact:start -->
+<title>Motus.Events</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@800&display=swap">
+<style>
+/* MOTUS.EVENTS · Coming Soon · Davara Distinct V3, Electric
+
+   Layout: one cinematic frame. It opens letterboxed at 2.39:1 and expands to full
+   frame at the climax. The wordmark rides the top band, the colophon the bottom
+   band, and the eyes and the title hold the centre.
+
+   Two castes of colour, never confused:
+     TEXTUAL  verified ink only (every pair computed, both modes, >= 7.5:1)
+     ELECTRIC art, glow and sparks only, never text                        */
+:root {
+  /* NOCTURNE, graphite night (default) */
+  --ground: #0F1114;
+  --ground-deep: #090B0D;
+  --panel: #15171B;
+  --bar: #050607;
+  --bar-edge: rgba(210, 225, 235, .08);
+
+  /* textual ink */
+  --ink: #F4F6F9;      /* 17.47:1 on ground */
+  --ink-2: #DCE3EC;    /* 14.62:1 near-bone, never grey */
+  --label: #9FD6DD;    /* 11.23:1 on the pill */
+  --focus: #9FD6DD;
+
+  /* the electric family: art only */
+  --cyan: #22D3EE;
+  --azure: #60A5FA;
+  --violet: #A78BFF;
+  --ember: #E879C9;
+
+  /* the one gold: the leverage point */
+  --gold: #E8C46B;
+  --gold-ring: rgba(232, 196, 107, .40);
+  --dot-edge: rgba(232, 196, 107, .45);
+
+  /* material */
+  --pill: rgba(21, 23, 27, .94);
+  --pill-edge: rgba(210, 225, 235, .14);
+  --pill-hi: rgba(255, 255, 255, .07);
+  --pill-shadow: rgba(0, 2, 4, .62);
+
+  /* atmosphere */
+  --aurora-o: .5;
+  --aurora-blur: 90px;
+  --aurora-sat: 1.4;
+  --grain-o: .07;
+  --grain-blend: overlay;
+  --mode: 0;
+
+  /* type */
+  --display: "Sora", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* motion */
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --curtain: cubic-bezier(.76, 0, .24, 1);
+
+  color-scheme: dark;
+}
+
+/* MERIDIAN, stone daylight. By day the ink speaks. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --ground: #CDD7D0; --ground-deep: #BFCCC3; --panel: #F4F8F5; --bar: #B4C3B9; --bar-edge: rgba(16, 25, 21, .34);
+    --ink: #101915; --ink-2: #22302A; --label: #0A3A32; --focus: #0A3A32;
+    --gold: #8A6410; --gold-ring: rgba(138, 100, 16, .30); --dot-edge: rgba(16, 25, 21, .55);
+    --pill: rgba(244, 248, 245, .95); --pill-edge: rgba(16, 25, 21, .16); --pill-hi: rgba(255, 255, 255, .75); --pill-shadow: rgba(16, 25, 21, .18);
+    --aurora-o: .3; --aurora-blur: 96px; --aurora-sat: 1.05; --grain-o: .09; --grain-blend: multiply; --mode: 1;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --ground: #CDD7D0; --ground-deep: #BFCCC3; --panel: #F4F8F5; --bar: #B4C3B9; --bar-edge: rgba(16, 25, 21, .34);
+  --ink: #101915; --ink-2: #22302A; --label: #0A3A32; --focus: #0A3A32;
+  --gold: #8A6410; --gold-ring: rgba(138, 100, 16, .30); --dot-edge: rgba(16, 25, 21, .55);
+  --pill: rgba(244, 248, 245, .95); --pill-edge: rgba(16, 25, 21, .16); --pill-hi: rgba(255, 255, 255, .75); --pill-shadow: rgba(16, 25, 21, .18);
+  --aurora-o: .3; --aurora-blur: 96px; --aurora-sat: 1.05; --grain-o: .09; --grain-blend: multiply; --mode: 1;
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  height: 100%;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--ground);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--display);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+[hidden] { display: none !important; }
+
+.motus {
+  position: relative;
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+  overflow-x: hidden;
+}
+.motus.fits { touch-action: pinch-zoom; }   /* nothing to scroll: one finger steers the gaze */
+
+/* ── the atmosphere: fixed layers behind the ink ──────────────────── */
+.fx { position: fixed; inset: 0; pointer-events: none; }
+.fx-ground { z-index: 0; background: radial-gradient(130% 100% at 50% 38%, var(--ground) 0%, var(--ground-deep) 100%); }
+
+/* Emergence: four hues becoming one light. Dark until the event ignites. */
+.aurora {
+  z-index: 1;
+  overflow: hidden;
+  opacity: var(--aurora-o);
+  transform: translate3d(var(--px, 0px), var(--py, 0px), 0);
+  transition: opacity 2.4s var(--ease);
+}
+.js .aurora { opacity: 0; }
+.js.ignited .aurora { opacity: var(--aurora-o); }
+.aurora i {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(var(--aurora-blur)) saturate(var(--aurora-sat));
+  will-change: transform;
+}
+.aurora i:nth-child(1) { width: 62vmax; height: 62vmax; left: -24vmax; top: -8vmax;  background: var(--cyan);   animation: drift-a 16s ease-in-out infinite; }
+.aurora i:nth-child(2) { width: 56vmax; height: 56vmax; right: -22vmax; top: -4vmax; background: var(--violet); animation: drift-b 13s ease-in-out infinite; }
+.aurora i:nth-child(3) { width: 48vmax; height: 48vmax; left: 26%; top: -36vmax;     background: var(--azure);  animation: drift-c 15s ease-in-out infinite; opacity: .85; }
+.aurora i:nth-child(4) { width: 40vmax; height: 40vmax; right: -18vmax; top: 46%;    background: var(--ember);  animation: drift-b 14s ease-in-out infinite reverse; opacity: .45; }
+@keyframes drift-a { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(5vmax, 3vmax, 0) scale(1.1); } }
+@keyframes drift-b { 0%, 100% { transform: translate3d(0, 0, 0) scale(1.04); } 50% { transform: translate3d(-5vmax, 4vmax, 0) scale(.93); } }
+@keyframes drift-c { 0%, 100% { transform: translate3d(0, 0, 0) scale(.96); } 50% { transform: translate3d(3vmax, 5vmax, 0) scale(1.12); } }
+
+.stage { position: fixed; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; }
+
+/* the floor: the colophon always stands on ground, never on aurora */
+.floor { inset: auto 0 0 0; height: 30vh; z-index: 4; background: linear-gradient(to bottom, transparent, var(--ground) 74%); }
+
+/* film grain, over the light and under the ink */
+.grain { z-index: 5; inset: -12%; opacity: var(--grain-o); mix-blend-mode: var(--grain-blend); background-size: 200px 200px; animation: grain 1s steps(6) infinite; }
+@keyframes grain {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  17% { transform: translate3d(-5%, 3%, 0); }
+  33% { transform: translate3d(3%, -6%, 0); }
+  50% { transform: translate3d(-2%, 7%, 0); }
+  67% { transform: translate3d(6%, 2%, 0); }
+  83% { transform: translate3d(-7%, -3%, 0); }
+}
+
+/* ── the letterbox: 2.39:1, and the frame opens at the climax ─────── */
+.bar { position: fixed; left: 0; right: 0; z-index: 6; display: none; background: var(--bar); pointer-events: none; transition: transform 1.3s var(--curtain); }
+.js.intro .bar { display: block; }
+.bar-top { top: 0; height: var(--bar-top, 12vh); box-shadow: 0 1px 0 var(--bar-edge); }
+.bar-bot { bottom: 0; height: var(--bar-bot, 12vh); box-shadow: 0 -1px 0 var(--bar-edge); }
+.js.curtain .bar-top { transform: translate3d(0, -101%, 0); }
+.js.curtain .bar-bot { transform: translate3d(0, 101%, 0); }
+
+/* keyboard users get the skip first; everyone else taps anywhere */
+.skip {
+  position: fixed; z-index: 9;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  left: max(16px, env(safe-area-inset-left, 0px));
+  min-height: 44px; padding: 0 18px;
+  border: 1px solid var(--pill-edge); border-radius: 999px;
+  background: var(--pill); color: var(--ink);
+  font: 500 13px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase;
+  cursor: pointer;
+  transform: translateY(-160%);
+}
+.skip:focus-visible { transform: none; outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* ── the ink ─────────────────────────────────────────────────────── */
+.hdr, .main, .foot { position: relative; z-index: 7; }
+
+.hdr { display: flex; justify-content: center; padding-block: 14px 0; }
+.mark {
+  margin: 0;
+  display: inline-flex; align-items: center;
+  min-height: 52px;
+  padding: 4px 8px 4px 22px;
+  border-radius: 999px;
+  background: var(--pill);
+  border: 1px solid var(--pill-edge);
+  box-shadow: inset 0 1px 0 var(--pill-hi), 0 18px 40px -18px var(--pill-shadow);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+  font: 500 clamp(.82rem, 3.4vw, 1.02rem)/1 var(--mono);
+  letter-spacing: .34em;
+  text-transform: uppercase;
+  color: var(--label);
+  transition: letter-spacing .6s var(--ease);
+}
+.mark:hover, .mark:focus-within { letter-spacing: .4em; }
+.mark .w2 { padding-right: 14px; }
+
+/* THE GOLD: the dot is the moment everything converges on. Press it. */
+.dot {
+  position: relative;
+  display: grid; place-items: center;
+  width: 44px; height: 44px; margin: 0 4px;
+  padding: 0; border: 0; border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+.dot i {
+  display: block; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 1.5px var(--dot-edge), 0 0 20px 3px var(--gold-ring);
+  animation: breath 3.1s ease-in-out infinite;
+  transition: transform .45s var(--ease);
+}
+.dot::after {
+  content: ""; position: absolute; inset: 5px; border-radius: 50%;
+  border: 1.5px solid var(--dot-edge);
+  opacity: 0; transform: scale(.5);
+  transition: opacity .5s var(--ease), transform .5s var(--ease);
+}
+.dot:hover i, .dot:focus-visible i, .dot.performed i { transform: scale(1.55); }
+.dot:hover::after, .dot:focus-visible::after, .dot.performed::after, .dot.noticed::after { opacity: 1; transform: scale(1); }
+.dot.noticed i { animation: noticed .9s var(--ease); }
+.dot:active i { transform: scale(.8); }
+.dot:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+@keyframes breath {
+  0%, 100% { box-shadow: 0 0 0 1.5px var(--dot-edge), 0 0 16px 2px var(--gold-ring); }
+  50% { box-shadow: 0 0 0 2.5px var(--dot-edge), 0 0 32px 8px var(--gold-ring); }
+}
+@keyframes noticed { 0%, 100% { transform: scale(1); } 35% { transform: scale(1.7); } }
+
+.main {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: clamp(6px, 2vh, 20px);
+  padding-block: 2vh;
+  min-width: 0;
+}
+
+/* the stage the eyes are drawn into: a real button, so the being can be met by keyboard */
+.eyes {
+  display: block;
+  width: min(100%, 640px, 64vh);
+  max-width: 100%;
+  aspect-ratio: 100 / 62;
+  margin: 0; padding: 0; border: 0;
+  border-radius: 48% / 50%;
+  background: transparent;
+  cursor: pointer;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+}
+.eyes:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+.no-js .eyes { display: none; }
+
+/* THE TITLE. His words, as given. Always visible; it only settles. */
+.title {
+  position: relative; isolation: isolate;
+  margin: 0;
+  text-align: center;
+  font: 800 clamp(3.1rem, min(16.5vw, 12vh), 7rem)/.92 var(--display);
+  letter-spacing: -.045em;
+  color: var(--ink);
+  text-wrap: balance;
+  transition: transform .5s var(--ease);
+}
+.title::before {   /* the panel the ink stands on: ground, never aurora */
+  content: ""; position: absolute; z-index: -1; inset: -24% -14%;
+  background: radial-gradient(closest-side, var(--ground) 78%, transparent);
+  pointer-events: none;
+}
+.title .w { display: block; white-space: nowrap; }
+.title .em { display: inline-block; font-size: .8em; margin-left: .08em; vertical-align: .02em; transform-origin: 50% 60%; }
+.title .em.glance { animation: glance 1.7s var(--ease); }
+.title.performed { transform: scale(1.025); }
+.js.intro .title .w { animation: settle 2.8s var(--ease) both; }
+.js.hit .title { animation: hit .75s var(--ease); }
+@keyframes settle { from { letter-spacing: .05em; } to { letter-spacing: -.045em; } }
+@keyframes hit { 0% { transform: scale(1); } 22% { transform: scale(1.035); } 100% { transform: scale(1); } }
+@keyframes glance {
+  0%, 100% { transform: none; }
+  22%, 44% { transform: translateX(-.07em) rotate(-5deg); }
+  62%, 80% { transform: translateX(.07em) rotate(5deg); }
+}
+
+.foot {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px;
+  padding-block: 8px 16px;
+}
+.colophon {
+  margin: 0;
+  font: 400 13px/1.5 var(--mono);
+  letter-spacing: .18em;
+  color: var(--ink-2);
+  text-align: center;
+}
+.sound {
+  display: inline-flex; align-items: center; gap: 11px;
+  min-height: 44px;
+  padding: 0 20px 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--pill-edge);
+  background: var(--pill);
+  box-shadow: inset 0 1px 0 var(--pill-hi), 0 14px 32px -16px var(--pill-shadow);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: var(--ink);
+  font: 500 13px/1 var(--mono);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.sound svg { width: 20px; height: 16px; fill: currentColor; overflow: visible; }
+.sound .b { transform-box: fill-box; transform-origin: 50% 100%; transform: scaleY(.32); transition: transform .4s var(--ease); }
+.sound:hover .b, .sound:focus-visible .b { transform: scaleY(.6); }
+.sound[aria-pressed="true"] .b { animation: eq 1.15s ease-in-out infinite; }
+.sound[aria-pressed="true"] .b:nth-child(2) { animation-delay: -.42s; }
+.sound[aria-pressed="true"] .b:nth-child(3) { animation-delay: -.77s; }
+.sound[aria-pressed="true"] .b:nth-child(4) { animation-delay: -.2s; }
+.sound:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+@keyframes eq { 0%, 100% { transform: scaleY(.3); } 30% { transform: scaleY(1); } 60% { transform: scaleY(.55); } }
+
+/* ── wider frames ────────────────────────────────────────────────── */
+@media (min-width: 760px) {
+  .foot { flex-direction: row-reverse; justify-content: space-between; width: 100%; max-width: 1180px; justify-self: center; padding-block: 8px 22px; }
+}
+@media (min-width: 900px) and (min-aspect-ratio: 4/3) {
+  .title .w { display: inline; }
+}
+/* phones held sideways: eyes beside the words */
+@media (orientation: landscape) and (max-height: 540px) {
+  .hdr { padding-block: 8px 0; }
+  .main { flex-direction: row; gap: 5vw; padding-block: 0; }
+  .eyes { width: min(46vw, 92vh); }
+  .title { text-align: left; font-size: clamp(2.2rem, 12.5vh, 4.2rem); }
+  .title .w { display: block; }
+  .foot { flex-direction: row-reverse; justify-content: space-between; width: 100%; padding-block: 4px 10px; }
+}
+
+/* ── reduced motion: the guidance survives motionless ────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .aurora i, .grain, .dot i, .sound .b, .title .w, .title .em { animation: none !important; }
+  .bar { display: none !important; }
+  .js .aurora { opacity: var(--aurora-o); }
+  *, *::before, *::after { transition-duration: .01ms !important; }
+}
+</style>
+<!-- artifact:end-head -->
+<meta name="description" content="Motus.Events is coming soon.">
+<meta name="theme-color" content="#0F1114" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#CDD7D0" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://motus.events/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Motus.Events">
+<meta property="og:title" content="Motus.Events · Coming Soon 👀">
+<meta property="og:description" content="Motus.Events is coming soon.">
+<meta property="og:url" content="https://motus.events/">
+<meta property="og:image" content="https://motus.events/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A pair of eyes made of light above the words Coming Soon.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Motus.Events · Coming Soon 👀">
+<meta name="twitter:description" content="Motus.Events is coming soon.">
+<meta name="twitter:image" content="https://motus.events/og.png">
+</head>
+<body>
+<!-- artifact:body -->
+<div class="motus no-js" id="motus">
+  <div class="fx fx-ground" aria-hidden="true"></div>
+  <div class="fx aurora" id="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <canvas class="stage" id="stage" aria-hidden="true"></canvas>
+  <div class="fx floor" aria-hidden="true"></div>
+  <div class="fx grain" id="grain" aria-hidden="true"></div>
+  <div class="bar bar-top" aria-hidden="true"></div>
+  <div class="bar bar-bot" aria-hidden="true"></div>
+  <button class="skip" id="skip" type="button" hidden>Skip intro</button>
+
+  <header class="hdr">
+    <p class="mark" data-look><span class="w1">Motus</span><button class="dot" id="gather" type="button" aria-label="Replay the gathering" title="Replay the gathering"><i aria-hidden="true"></i></button><span class="w2">Events</span></p>
+  </header>
+
+  <main class="main">
+    <button class="eyes" id="eyes" type="button" aria-label="Make the eyes blink"></button>
+    <h1 class="title" id="title" data-look><span class="w">Coming</span> <span class="w">Soon <span class="em" id="em">👀</span></span></h1>
+  </main>
+
+  <footer class="foot">
+    <button class="sound" id="sound" type="button" aria-pressed="false" data-look>
+      <svg viewBox="0 0 20 16" aria-hidden="true"><rect class="b" x="0.5" y="1" width="3" height="14" rx="1.5"/><rect class="b" x="5.8" y="1" width="3" height="14" rx="1.5"/><rect class="b" x="11.1" y="1" width="3" height="14" rx="1.5"/><rect class="b" x="16.4" y="1" width="3" height="14" rx="1.5"/></svg>
+      <span>Sound</span>
+    </button>
+    <p class="colophon" data-look>August James &middot; Initium Builders &middot; 2026</p>
+  </footer>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────────
+   MOTUS.EVENTS · THE BEING
+
+   Statement: an event is many people paying attention to one moment
+   together. So the lights arrive from every edge of the frame, find each
+   other, spin into one vortex and fall into a single point. From that
+   point a pair of eyes opens and looks at you. Many lights, one gaze.
+
+   Temperament: curious and kind. It reads the words with you, follows
+   your hand, blinks when you meet it, and every so often it does the 👀.
+   Eyes lead and the head follows, the way animators have always done it.
+   ───────────────────────────────────────────────────────────────────── */
+(() => {
+  "use strict";
+
+  const root = document.getElementById("motus");
+  if (!root) return;
+  root.classList.remove("no-js");
+  root.classList.add("js");
+
+  const $ = (id) => document.getElementById(id);
+  const canvas = $("stage"), eyesBtn = $("eyes"), dotBtn = $("gather"), soundBtn = $("sound");
+  const skipBtn = $("skip"), title = $("title"), em = $("em"), aurora = $("aurora"), grain = $("grain");
+  const hdr = root.querySelector(".hdr"), foot = root.querySelector(".foot");
+  const ctx = canvas && canvas.getContext ? canvas.getContext("2d") : null;
+  if (!ctx) return;
+
+  const TAU = Math.PI * 2, GOLDEN = 2.399963229728653;  /* the golden angle, 137.5° */
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const easeIn = (k) => k * k * k;
+  const easeOut = (k) => 1 - Math.pow(1 - k, 3);
+  const easeInOut = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+  const easeOutBack = (k) => 1 + 2.70158 * Math.pow(k - 1, 3) + 1.70158 * Math.pow(k - 1, 2);
+  const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  const prand = (s) => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  const buzz = (p) => { try { const ua = navigator.userActivation; if (navigator.vibrate && (!ua || ua.hasBeenActive)) navigator.vibrate(p); } catch (e) { /* haptics are a bonus */ } };
+
+  const mReduce = matchMedia("(prefers-reduced-motion: reduce)");
+  const mLight = matchMedia("(prefers-color-scheme: light)");
+  let rm = mReduce.matches;
+  let light = false;
+  const readMode = () => { light = getComputedStyle(document.documentElement).getPropertyValue("--mode").trim() === "1"; };
+
+  /* ── SOUND: generative, opt-in, never autoplayed ───────────────────── */
+  const Sound = (() => {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    let ac = null, out = null, wet = null, bed = null, noise = null, on = false;
+
+    function init() {
+      if (ac) return true;
+      if (!AC) return false;
+      try {
+        ac = new AC();
+        const comp = ac.createDynamicsCompressor();
+        comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 3.5;
+        comp.attack.value = 0.005; comp.release.value = 0.3;
+        out = ac.createGain(); out.gain.value = 0;
+        out.connect(comp); comp.connect(ac.destination);
+        const verb = ac.createConvolver(); verb.buffer = impulse(3.4, 2.6);
+        wet = ac.createGain(); wet.gain.value = 0.42;
+        wet.connect(verb); verb.connect(out);
+        return true;
+      } catch (e) { ac = null; return false; }
+    }
+    function impulse(sec, decay) {   /* a generated hall, so the room has size */
+      const n = Math.floor(ac.sampleRate * sec), b = ac.createBuffer(2, n, ac.sampleRate);
+      for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, decay); }
+      return b;
+    }
+    function noiseBuf() {
+      if (noise) return noise;
+      const n = ac.sampleRate * 2, b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+      return (noise = b);
+    }
+    function route(node, pan, send) {
+      let tail = node;
+      if (pan && ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); node.connect(p); tail = p; }
+      tail.connect(out);
+      if (send) { const s = ac.createGain(); s.gain.value = send; tail.connect(s); s.connect(wet); }
+    }
+    function env(g, t, a, peak, dec) {
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + a);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + a + dec);
+    }
+    function tone(freq, type, t, a, peak, dec, pan, send, glideTo) {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t + a + dec);
+      env(g, t, a, peak, dec); o.connect(g); route(g, pan, send);
+      o.start(t); o.stop(t + a + dec + 0.05);
+    }
+    function burst(t, dur, peak, type, freq, q, pan, send) {
+      const s = ac.createBufferSource(); s.buffer = noiseBuf();
+      const f = ac.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q || 0.7;
+      const g = ac.createGain(); env(g, t, 0.004, peak, dur);
+      s.connect(f); f.connect(g); route(g, pan, send);
+      s.start(t, Math.random()); s.stop(t + dur + 0.05);
+    }
+    function startBed() {   /* the room before the doors open: a low fifth and some air */
+      const t = ac.currentTime, g = ac.createGain(); g.gain.value = 0.0001;
+      const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 620; lp.Q.value = 0.6;
+      lp.connect(g); g.connect(out);
+      const nodes = [];
+      [[55, "sine", 0.5], [82.41, "triangle", 0.12], [110.25, "sine", 0.2], [164.81, "sine", 0.07], [220.4, "sine", 0.035]].forEach(([f, type, v]) => {
+        const o = ac.createOscillator(), og = ac.createGain();
+        o.type = type; o.frequency.value = f; og.gain.value = v;
+        o.connect(og); og.connect(lp); o.start(t); nodes.push(o);
+      });
+      const lfo = ac.createOscillator(), lg = ac.createGain();
+      lfo.frequency.value = 0.05; lg.gain.value = 260; lfo.connect(lg); lg.connect(lp.frequency); lfo.start(t); nodes.push(lfo);
+      const n = ac.createBufferSource(); n.buffer = noiseBuf(); n.loop = true;
+      const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1500; bp.Q.value = 0.4;
+      const ng = ac.createGain(); ng.gain.value = 0.02;
+      n.connect(bp); bp.connect(ng); ng.connect(g); n.start(t); nodes.push(n);
+      g.gain.exponentialRampToValueAtTime(0.34, t + 2.4);
+      bed = { g, nodes };
+    }
+    function stopBed() {
+      if (!bed) return;
+      const b = bed, t = ac.currentTime; bed = null;
+      b.g.gain.cancelScheduledValues(t); b.g.gain.setValueAtTime(Math.max(0.0001, b.g.gain.value), t);
+      b.g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+      setTimeout(() => b.nodes.forEach((x) => { try { x.stop(); } catch (e) { /* already stopped */ } }), 700);
+    }
+    const ok = () => on && ac && ac.state === "running";
+
+    return {
+      toggle() {
+        if (!init()) return false;
+        on = !on;
+        const t = ac.currentTime;
+        out.gain.cancelScheduledValues(t); out.gain.setValueAtTime(out.gain.value, t);
+        if (on) {
+          if (ac.state !== "running") ac.resume();
+          out.gain.linearRampToValueAtTime(0.9, t + 0.5);
+          startBed();
+          tone(659.25, "sine", t + 0.05, 0.01, 0.05, 1.2, 0, 0.6);
+          tone(987.77, "sine", t + 0.18, 0.01, 0.035, 1.4, 0, 0.6);
+        } else {
+          out.gain.linearRampToValueAtTime(0, t + 0.45);
+          stopBed();
+        }
+        return on;
+      },
+      suspend() { if (ac && on) ac.suspend(); },
+      resume() { if (ac && on) ac.resume(); },
+      tick(pan) { if (ok()) tone(2093, "sine", ac.currentTime, 0.004, 0.012, 0.09, pan || 0, 0.25); },
+      glance(pan) { if (ok()) tone(pan < 0 ? 1318.5 : 1567.98, "sine", ac.currentTime, 0.006, 0.03, 0.5, pan, 0.55); },
+      boop() { if (ok()) tone(740, "sine", ac.currentTime, 0.006, 0.12, 0.16, 0, 0.2, 370); },
+      zap(pan) { if (!ok()) return; const t = ac.currentTime; for (let i = 0; i < 5; i++) burst(t + i * 0.024 + Math.random() * 0.01, 0.03, 0.06, "highpass", 2600, 0.9, pan, 0.2); },
+      riser(sec) {
+        if (!ok()) return;
+        const t = ac.currentTime, s = ac.createBufferSource(); s.buffer = noiseBuf(); s.loop = true;
+        const f = ac.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 1.4;
+        f.frequency.setValueAtTime(220, t); f.frequency.exponentialRampToValueAtTime(5200, t + sec);
+        const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.16, t + sec * 0.92); g.gain.exponentialRampToValueAtTime(0.0001, t + sec + 0.05);
+        s.connect(f); f.connect(g); route(g, 0, 0.4); s.start(t); s.stop(t + sec + 0.1);
+        tone(110, "triangle", t, sec * 0.9, 0.04, 0.12, 0, 0.1, 440);
+      },
+      impact(str) {
+        if (!ok()) return;
+        const t = ac.currentTime + 0.01, s = str || 1;
+        tone(72, "sine", t, 0.008, 0.55 * s, 1.7, 0, 0.15, 30);           /* the sub */
+        burst(t, 0.5, 0.32 * s, "lowpass", 900, 0.6, 0, 0.5);              /* the body */
+        [220, 277.18, 329.63, 415.3, 493.88].forEach((f, i) =>             /* A major 9, spread wide */
+          tone(f * (1 + (Math.random() - 0.5) * 0.004), "sine", t + 0.02 + i * 0.012, 0.03, 0.045 * s, 3.6, (i - 2) * 0.3, 0.9));
+      },
+      hearts() {
+        if (!ok()) return;
+        const t = ac.currentTime;
+        [[174.61, 220, 261.63, 329.63], [196, 246.94, 293.66, 392]].forEach((ch, k) =>
+          ch.forEach((f, i) => tone(f, "sine", t + k * 0.29 + i * 0.01, 0.05, 0.04, 1.4, (i - 1.5) * 0.25, 0.7)));
+      },
+    };
+  })();
+
+  /* ── GEOMETRY: read live from the layout, so the being survives every viewport ── */
+  let W = 0, H = 0, DPR = 1;
+  const E = { cx: 0, cy: 0, w: 0, h: 0, rx: 60, ry: 76, d: 56, rp: 24, gx: 30, gy: 40, f: 600 };
+  function measure() {
+    W = window.innerWidth; H = window.innerHeight;
+    const r = eyesBtn.getBoundingClientRect();
+    if (r.width > 2) {
+      E.cx = r.left + r.width / 2; E.cy = r.top + r.height / 2; E.w = r.width; E.h = r.height;
+      E.rx = r.width * 0.205;
+      E.ry = Math.min(E.rx / 0.78, r.height * 0.43);   /* tall ovals, like the emoji */
+      E.d = E.rx * 0.93;                                 /* they overlap a touch: a vesica */
+      E.rp = E.rx * 0.4;
+      E.gx = E.rx - E.rp - E.rx * 0.1;
+      E.gy = E.ry - E.rp - E.ry * 0.1;
+      E.f = E.rx * 9;
+    }
+    /* the letterbox ends under the wordmark and above the colophon; on landscape
+       it is never thinner than true 2.39:1 */
+    const cine = W > H ? Math.max(0, (H - W / 2.39) / 2) : 0;
+    root.style.setProperty("--bar-top", Math.max(hdr.getBoundingClientRect().bottom + 12, cine).toFixed(1) + "px");
+    root.style.setProperty("--bar-bot", Math.max(H - foot.getBoundingClientRect().top + 12, cine).toFixed(1) + "px");
+    root.classList.toggle("fits", document.documentElement.scrollHeight <= H + 2);
+  }
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    measure();
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  /* ── THE BODY: 96 to 210 lights, inside the performance budget ── */
+  const RIM_L = 0, RIM_R = 1, PUP_L = 2;
+  const TL = { one: 260, arrive: 1150, vortex: 3200, inhale: 4500, collapse: 4880, impact: 5160, open: 6150, live: 6950 };  /* the first visit */
+  const GL = { one: 0, arrive: 0, vortex: 420, inhale: 1560, collapse: 1900, impact: 2160, open: 3000, live: 3650 };        /* the replay */
+  let P = [], N = 0, RIM = 0, PUP = 0, first = null;
+  const bucket = () => ((navigator.hardwareConcurrency || 8) <= 4 && W < 600 ? 96 : W < 600 ? 110 : W < 1100 ? 150 : 210);
+
+  function build() {
+    N = bucket();
+    RIM = Math.round(N * 0.315);
+    PUP = Math.floor((N - RIM * 2) / 2);
+    N = RIM * 2 + PUP * 2;
+    P = new Array(N);
+    for (let i = 0; i < N; i++) {
+      const role = i < RIM ? RIM_L : i < RIM * 2 ? RIM_R : i < RIM * 2 + PUP ? PUP_L : 3;
+      const slot = role === RIM_L ? i : role === RIM_R ? i - RIM : role === PUP_L ? i - RIM * 2 : i - RIM * 2 - PUP;
+      const rim = role <= RIM_R;
+      P[i] = {
+        x: E.cx, y: E.cy, vx: 0, vy: 0, ox: E.cx, oy: E.cy,
+        rim, side: role === RIM_L || role === PUP_L ? -1 : 1,
+        ang: rim ? (TAU * slot) / RIM + rand(-0.04, 0.04) : 0,
+        pr: rim ? 0 : Math.sqrt((slot + 0.5) / PUP),
+        pa: rim ? 0 : slot * GOLDEN,
+        z: rim ? rand(-8, 8) : rand(-24, -12),
+        a: rand(0, TAU), ar: rand(0.32, 1), yj: rand(-1, 1), spin: rand(0.8, 1.25),
+        s: rim ? rand(1.7, 2.8) : rand(2.1, 3.3),
+        hz: rand(-12, 12), ph: rand(0, TAU), wf: rand(0.6, 1.4), lag: rand(0.84, 1.16),
+        sc: 1, al: 1, on: false, spawn: 0,
+      };
+    }
+    first = P[RIM * 2];
+    first.ar = 0.04; first.s = 3.4; first.spawn = TL.one;
+    /* arrivals: sparse at first, then a crowd, in shuffled order */
+    const idx = [];
+    for (let i = 0; i < N; i++) if (P[i] !== first) idx.push(i);
+    for (let i = idx.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
+    idx.forEach((pi, rank) => { P[pi].spawn = TL.arrive + (TL.vortex - TL.arrive - 250) * Math.pow(rank / idx.length, 0.55); });
+  }
+
+  function arrive(p) {
+    p.on = true;
+    if (p === first) { p.x = p.ox = E.cx; p.y = p.oy = E.cy; p.vx = p.vy = 0; return; }
+    const a = rand(0, TAU), R0 = Math.hypot(W, H) * 0.6;   /* from every edge of the frame */
+    p.x = p.ox = E.cx + Math.cos(a) * R0; p.y = p.oy = E.cy + Math.sin(a) * R0;
+    const toward = a + Math.PI + rand(-0.65, 0.65), sp = rand(8, 14);
+    p.vx = Math.cos(toward) * sp; p.vy = Math.sin(toward) * sp;
+  }
+
+  /* ── SCENES: the intro, the replay, and life ── */
+  const S = { mode: "boot", t0: 0, L: TL, replay: false, fired: false, opened: false, short: false };
+  const Q = { eyeW: 0, cr: 0, om: 0, k: 0.01, damp: 0.93, warm: 0, lit: 0.3, hue: 187, hueW: 1, trails: false, wander: 0.02 };
+
+  function phase(t) {
+    const L = S.L, m = Math.min(W, H), rep = S.replay;
+    Q.trails = true; Q.wander = 0.022;
+    if (t < L.vortex) {                                   /* ARRIVE, or on a replay RELEASE */
+      if (rep) {
+        const k = smooth(0, L.vortex, t);
+        Q.eyeW = 1 - smooth(0, 520, t);
+        Q.cr = lerp(E.rx * 2.1, m * 0.3, k); Q.om = lerp(0.004, 0.013, k);
+        Q.k = 0.034; Q.damp = 0.93; Q.lit = 0.35;
+      } else {
+        Q.eyeW = 0; Q.cr = m * 0.34; Q.om = lerp(0.0035, 0.009, smooth(L.arrive, L.vortex, t));
+        Q.k = 0.011; Q.damp = 0.935; Q.lit = 0.22;
+      }
+      Q.warm = 0; Q.hue = 187; Q.hueW = 1;
+    } else if (t < L.inhale) {                            /* THE VORTEX: they find each other */
+      const k = smooth(L.vortex, L.inhale, t);
+      Q.eyeW = 0; Q.cr = lerp(rep ? m * 0.3 : m * 0.34, m * 0.12, k);
+      Q.om = lerp(0.011, 0.052, k * k); Q.k = lerp(0.03, 0.065, k); Q.damp = 0.925;
+      Q.warm = 0; Q.lit = lerp(0.3, 0.95, k); Q.hue = lerp(187, 258, k); Q.hueW = 1;
+    } else if (t < L.collapse) {                          /* THE INHALE: a breath outward before the fall */
+      const k = smooth(L.inhale, L.collapse, t);
+      Q.eyeW = 0; Q.cr = lerp(m * 0.12, m * 0.185, easeOut(k));
+      Q.om = lerp(0.052, 0.02, k); Q.k = 0.065; Q.damp = 0.92;
+      Q.warm = lerp(0, 0.25, k); Q.lit = 0.65; Q.hue = 258; Q.hueW = 1;
+    } else if (t < L.impact) {                            /* THE FALL: everything into one point */
+      const k = clamp((t - L.collapse) / (L.impact - L.collapse), 0, 1);
+      Q.eyeW = 0; Q.cr = m * 0.185 * (1 - easeIn(k));
+      Q.om = lerp(0.02, 0.12, k); Q.k = lerp(0.065, 0.22, k); Q.damp = 0.88;
+      Q.warm = lerp(0.25, 0.92, k); Q.lit = 1; Q.hue = 258; Q.hueW = 1;
+    } else {                                              /* THE BLOOM: burst, then assemble, asleep */
+      const k = clamp((t - L.impact) / 1050, 0, 1);
+      Q.eyeW = 1; Q.cr = 0; Q.om = 0;
+      Q.k = lerp(0.003, 0.11, easeIn(k)); Q.damp = lerp(0.955, 0.8, k);
+      Q.warm = 0.92 * (1 - smooth(L.impact, L.impact + 1600, t));
+      Q.lit = lerp(1, 0.4, k); Q.hue = 258; Q.hueW = 1 - smooth(L.impact, L.impact + 1700, t);
+      Q.trails = t < L.impact + 950; Q.wander = 0.012;
+    }
+  }
+  function livePhase() { Q.eyeW = 1; Q.cr = 0; Q.om = 0; Q.k = 0.12; Q.damp = 0.76; Q.warm = 0; Q.lit = 0.4; Q.hueW = 0; Q.trails = false; Q.wander = 0.01; }
+
+  /* ── THE GAZE: eyes lead, the head follows ── */
+  const gz = [{ x: 0, y: 0.05, vx: 0, vy: 0 }, { x: 0, y: 0.05, vx: 0, vy: 0 }];
+  const head = { x: 0, y: 0, vx: 0, vy: 0 };
+  const blink = { anim: null, next: 0, forced: true, dbl: false };
+  const BL = [1, 1];
+  const widen = { t0: -1e9 };
+  const love = { t0: -1e9, dur: 3400 };
+
+  function startBlink(now, which, slow) { const s = slow || 1; blink.anim = { t0: now, c: 85 * s, h: 45 * s, o: 165 * s, which: which || "both" }; }
+  function openEyes(now, ms) { blink.forced = false; blink.anim = { t0: now, c: 0, h: 0, o: ms, which: "both" }; blink.next = now + rand(2600, 5200); }
+  function blinkAmt(now) {
+    if (blink.forced) { BL[0] = BL[1] = 1; return; }
+    const a = blink.anim;
+    BL[0] = BL[1] = 0;
+    if (!a) return;
+    const t = now - a.t0;
+    if (t < 0) return;
+    let v;
+    if (t < a.c) v = Math.pow(t / a.c, 2);
+    else if (t < a.c + a.h) v = 1;
+    else if (t < a.c + a.h + a.o) v = 1 - easeOut((t - a.c - a.h) / a.o);
+    else { blink.anim = null; if (blink.dbl) { blink.dbl = false; startBlink(now + 70, "both"); } return; }
+    if (a.which !== "R") BL[0] = v;
+    if (a.which !== "L") BL[1] = v;
+  }
+  const widenAmt = (now) => { const t = now - widen.t0; if (t < 0 || t > 700) return 0; return t < 130 ? easeOut(t / 130) : 1 - easeInOut((t - 130) / 570); };
+  const loveAmt = (now) => {
+    const t = now - love.t0;
+    if (t < 0 || t > love.dur) return 0;
+    if (t < 520) return easeOutBack(t / 520);
+    if (t > love.dur - 560) return 1 - easeInOut((t - (love.dur - 560)) / 560);
+    return 1;
+  };
+  const beat = (now) => { const ph = ((now - love.t0) % 860) / 860; return Math.exp(-Math.pow((ph - 0.06) / 0.06, 2)) + 0.65 * Math.exp(-Math.pow((ph - 0.3) / 0.07, 2)); };
+
+  /* ── ATTENTION: what the being looks at, in order of who asked ── */
+  const pointer = { x: 0, y: 0, t: -1e9 };
+  const kb = { x: 0, y: 0, t: -1e9 };
+  const tilt = { x: 0, y: 0, t: -1e9, by: null, bx: null };
+  const TG = { pt: false, x: 0, y: 0 };
+  const idle = { next: 0, x: 0, y: 0.05, seq: null, i: 0, end: 0, nextGlance: 0, nextLead: 0 };
+  let focusEl = null, focusUntil = 0, lastInput = 0;
+
+  const toPoint = (x, y) => { TG.pt = true; TG.x = x; TG.y = y; return TG; };
+  const toDir = (x, y) => { TG.pt = false; TG.x = x; TG.y = y; return TG; };
+  const centerOf = (el) => { const r = el.getBoundingClientRect(); return toPoint(r.left + r.width / 2, r.top + r.height / 2); };
+  function runSeq(now, seq) { idle.seq = seq; idle.i = -1; idle.end = now; }
+  function emGlance() { em.classList.remove("glance"); void em.offsetWidth; em.classList.add("glance"); }
+  function noticeDot() { dotBtn.classList.remove("noticed"); void dotBtn.offsetWidth; dotBtn.classList.add("noticed"); }
+  const glanceSeq = () => [   /* the 👀 */
+    { x: -0.96, y: 0.12, ms: 900, fn: () => { emGlance(); Sound.glance(-0.8); } },
+    { x: 0.96, y: 0.12, ms: 640, fn: () => Sound.glance(0.8) },
+    { x: 0, y: 0.04, ms: 700 },
+  ];
+  const leadSeq = () => [{ el: dotBtn, ms: 1300, fn: noticeDot }, { x: 0, y: 0.05, ms: 600 }];   /* focus is a gift */
+  const firstSeq = () => [
+    { x: 0, y: 0.02, ms: 1250 },                                          /* eye contact */
+    { el: title, ms: 1050 },                                              /* it reads the words with you */
+    { x: 0, y: 0.03, ms: 900, fn: (n) => startBlink(n, "both", 1.7) },    /* back to you, a slow blink */
+  ].concat(glanceSeq());
+
+  function attention(now) {
+    if (now - pointer.t < 2600) return toPoint(pointer.x, pointer.y);
+    if (now - kb.t < 1900) return toDir(kb.x, kb.y);
+    if (focusEl && now < focusUntil) return centerOf(focusEl);
+    if (now - tilt.t < 1400) return toDir(-tilt.x * 0.9, -tilt.y * 0.8);   /* it keeps looking at you as you tilt */
+    if (idle.seq) {
+      if (now >= idle.end) {
+        idle.i++;
+        if (idle.i >= idle.seq.length) { idle.seq = null; idle.next = now + rand(500, 1300); }
+        else { const s = idle.seq[idle.i]; idle.end = now + s.ms; if (s.fn) s.fn(now); }
+      }
+      if (idle.seq) { const s = idle.seq[idle.i]; return s.el ? centerOf(s.el) : toDir(s.x, s.y); }
+    }
+    if (now >= idle.next) {
+      if (now >= idle.nextGlance) { idle.nextGlance = now + rand(15000, 24000); runSeq(now, glanceSeq()); return attention(now); }
+      if (now >= idle.nextLead && now - lastInput > 8000) { idle.nextLead = now + rand(14000, 22000); runSeq(now, leadSeq()); return attention(now); }
+      const a = rand(0, TAU), r = Math.sqrt(Math.random()) * 0.72;
+      idle.x = Math.cos(a) * r; idle.y = Math.sin(a) * r * 0.7 + 0.12;
+      idle.next = now + rand(900, 3100);
+    }
+    return toDir(idle.x, idle.y);
+  }
+  const gtmp = [0, 0];
+  function gazeAt(px, py, side) {   /* each eye aims on its own, so near things make them converge */
+    const ex = E.cx + side * E.d + head.x * E.rx * 0.22, ey = E.cy + head.y * E.rx * 0.14;
+    const R = Math.max(E.rx * 3.2, Math.min(W, H) * 0.42);
+    const dx = (px - ex) / R, dy = (py - ey) / R, m = Math.hypot(dx, dy);
+    const s = m > 1e-4 ? Math.tanh(m * 1.6) / m : 0;
+    gtmp[0] = dx * s; gtmp[1] = dy * s;
+  }
+
+  /* ── EFFECTS: discharges, shockwaves, the anamorphic flare, the flash ── */
+  const fx = { flashT: -1e9, flashA: 0, flareT: -1e9, flareA: 0, waves: [], arcs: [] };
+  function addArc(now, x1, y1, x2, y2, life, w, warm) {
+    if (fx.arcs.length > 14) fx.arcs.shift();
+    fx.arcs.push({ x1, y1, x2, y2, t0: now, life: life || 420, w: w || 2.4, seed: Math.random() * 1e4, warm: !!warm });
+  }
+
+  /* ── SPRITES: one soft light per hue, drawn once ── */
+  const SPR = 64, spr = { d: [], l: [] };
+  let sprWhite = null;
+  function makeSprite(h, lightMode, white) {
+    const c = document.createElement("canvas"); c.width = c.height = SPR;
+    const g = c.getContext("2d"), r = SPR / 2, grd = g.createRadialGradient(r, r, 0, r, r, r);
+    if (white) {
+      grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.18, "rgba(255,255,255,.9)");
+      grd.addColorStop(0.4, "rgba(255,255,255,.18)"); grd.addColorStop(1, "rgba(255,255,255,0)");
+    } else if (!lightMode) {
+      grd.addColorStop(0, `hsla(${h},100%,96%,1)`); grd.addColorStop(0.1, `hsla(${h},100%,78%,.95)`);
+      grd.addColorStop(0.26, `hsla(${h},96%,64%,.36)`); grd.addColorStop(0.55, `hsla(${h},96%,60%,.07)`); grd.addColorStop(1, `hsla(${h},96%,60%,0)`);
+    } else {   /* by day the light becomes ink */
+      grd.addColorStop(0, `hsla(${h},64%,15%,1)`); grd.addColorStop(0.16, `hsla(${h},62%,19%,.92)`);
+      grd.addColorStop(0.34, `hsla(${h},56%,25%,.2)`); grd.addColorStop(1, `hsla(${h},56%,25%,0)`);
+    }
+    g.fillStyle = grd; g.fillRect(0, 0, SPR, SPR);
+    return c;
+  }
+  const sprite = (h) => { const i = ((Math.round(h / 10) % 36) + 36) % 36, a = light ? spr.l : spr.d; return a[i] || (a[i] = makeSprite(i * 10, light)); };
+
+  function makeGrain() {
+    try {
+      const c = document.createElement("canvas"); c.width = c.height = 128;
+      const g = c.getContext("2d"), img = g.createImageData(128, 128), d = img.data;
+      for (let i = 0; i < d.length; i += 4) { const v = (Math.random() * 255) | 0; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
+      g.putImageData(img, 0, 0);
+      grain.style.backgroundImage = "url(" + c.toDataURL("image/png") + ")";
+    } catch (e) { /* no grain is fine */ }
+  }
+
+  /* cyan → azure → violet, slowly, like a fluid deciding what it is */
+  function baseHue(now) { const st = [187, 214, 258, 214], u = (now / 34000) % 1, f = u * 4, i = Math.floor(f); return lerp(st[i % 4], st[(i + 1) % 4], easeInOut(f - i)); }
+
+  /* ── THE FRAME ── */
+  let raf = 0, last = 0, snap = false;
+  let hue = 187, lv = 0, wide = 1, pscale = 1, cy_ = 1, sy_ = 0, cp_ = 1, sp_ = 0, hx = 0, hy = 0, br = 1, hs = 1;
+  const PJ = { x: 0, y: 0, s: 1 };
+  function project(lx, ly, lz) {   /* yaw, pitch, perspective: the head is a real object in space */
+    const x1 = lx * cy_ - lz * sy_, z1 = lx * sy_ + lz * cy_;
+    const y1 = ly * cp_ - z1 * sp_, z2 = ly * sp_ + z1 * cp_;
+    const sc = E.f / (E.f + z2);
+    PJ.x = E.cx + hx + x1 * sc * br; PJ.y = E.cy + hy + y1 * sc * br; PJ.s = sc;
+    return PJ;
+  }
+
+  function step(now, d) {
+    if (S.mode === "intro" || S.mode === "gather") {
+      const t = now - S.t0;
+      phase(t);
+      if (S.mode === "intro") for (let i = 0; i < N; i++) if (!P[i].on && t >= P[i].spawn) arrive(P[i]);
+      if (!S.fired && t >= S.L.impact) impact(now);
+      if (S.fired && !S.opened && t >= S.L.open) { S.opened = true; openEyes(now, 360); widen.t0 = now - 40; }
+      if (t >= S.L.live) goLive(now);
+    } else livePhase();
+
+    /* attention → per-eye gaze (saccades: quick, a little overshoot, then hold) */
+    if (!rm) {
+      const tg = attention(now);
+      for (let e = 0; e < 2; e++) {
+        const g = gz[e];
+        if (tg.pt) gazeAt(tg.x, tg.y, e ? 1 : -1); else { gtmp[0] = tg.x; gtmp[1] = tg.y; }
+        const mg = Math.hypot(gtmp[0], gtmp[1]); if (mg > 1) { gtmp[0] /= mg; gtmp[1] /= mg; }
+        g.vx += (gtmp[0] - g.x) * 0.2 * d; g.vy += (gtmp[1] - g.y) * 0.2 * d;
+        const gd = Math.pow(0.6, d); g.vx *= gd; g.vy *= gd;
+        g.x += g.vx * d + (Math.random() - 0.5) * 0.006; g.y += g.vy * d + (Math.random() - 0.5) * 0.006;
+      }
+      const ax = (gz[0].x + gz[1].x) / 2, ay = (gz[0].y + gz[1].y) / 2;
+      head.vx += (ax - head.x) * 0.02 * d; head.vy += (ay - head.y) * 0.02 * d;
+      const hd = Math.pow(0.88, d); head.vx *= hd; head.vy *= hd;
+      head.x += head.vx * d; head.y += head.vy * d;
+      aurora.style.setProperty("--px", (-head.x * 14).toFixed(1) + "px");
+      aurora.style.setProperty("--py", (-head.y * 10).toFixed(1) + "px");
+    }
+
+    lv = loveAmt(now);
+    if (!rm && S.mode === "live" && !blink.forced && !blink.anim && now >= blink.next && lv <= 0) {
+      startBlink(now, "both"); blink.dbl = Math.random() < 0.16; blink.next = now + rand(2400, 6400); Sound.tick(0);
+    }
+    blinkAmt(now);
+    const wv = widenAmt(now); wide = 1 + 0.16 * wv; pscale = 1 - 0.3 * wv;
+    const bt = lv > 0 ? 1 + 0.075 * beat(now) * clamp(lv, 0, 1) : 1;
+
+    hue = lerp(baseHue(now), Q.hue, Q.hueW);
+    if (Q.warm > 0) hue = lerp(hue, 402, Q.warm);          /* it warms the short way round, through ember into gold */
+    if (lv > 0) hue = lerp(hue, 318, clamp(lv, 0, 1));
+    hue = ((hue % 360) + 360) % 360;
+
+    const yaw = head.x * 0.34, pitch = head.y * 0.22;
+    cy_ = Math.cos(yaw); sy_ = Math.sin(yaw); cp_ = Math.cos(pitch); sp_ = Math.sin(pitch);
+    const sz = E.rx / 72;
+    hx = head.x * 15 * sz; hy = head.y * 9 * sz + (rm ? 0 : Math.sin((now * TAU) / 6100) * 2.6 * sz);
+    br = rm ? 1 : 1 + 0.012 * Math.sin((now * TAU) / 8000);   /* the Breath, ~8s */
+    hs = Math.min(E.rx / 16, E.ry / 14.5) * 1.02 * bt;
+
+    const flow = rm ? 0 : now * 0.00016, closeY = E.ry * 0.2, jit = rm ? 0 : 1.4 * sz;
+    const live = S.mode === "live";
+    for (let i = 0; i < N; i++) {
+      const p = P[i];
+      if (!p.on) continue;
+      let tx = 0, ty = 0, ts = 1, ta = 1;
+      if (Q.eyeW < 1) {                                   /* the cloud: a tilted disc in 3D */
+        p.a += Q.om * p.spin * d;
+        const r = Q.cr * p.ar, cx = Math.cos(p.a) * r, cz = Math.sin(p.a) * r, cs = 640 / (640 + cz * 0.9);
+        tx = E.cx + cx * cs; ty = E.cy + (cz * 0.36 + p.yj * Q.cr * 0.16) * cs; ts = cs;
+      }
+      if (Q.eyeW > 0) {                                   /* the eyes */
+        const side = p.side, bk = side < 0 ? BL[0] : BL[1];
+        let lx, ly, la = 1;
+        if (p.rim) {   /* a closed ring with a current circulating in it: feedback, alive */
+          const t = p.ang + flow * side, ct = Math.cos(t), st = Math.sin(t);
+          lx = ct * E.rx * wide; ly = st * E.ry * wide;
+          ly = lerp(ly, closeY + st * E.ry * 0.035, bk);   /* the lids meet a little below centre */
+          if (lv > 0) {
+            const ht = t + Math.PI / 2, sn = Math.sin(ht);
+            const hX = 16 * sn * sn * sn, hY = -(13 * Math.cos(ht) - 5 * Math.cos(2 * ht) - 2 * Math.cos(3 * ht) - Math.cos(4 * ht));
+            lx = lerp(lx, hX * hs, lv); ly = lerp(ly, (hY - 2.5) * hs, lv);
+          }
+          lx += Math.sin(now * 0.0023 * p.wf + p.ph) * jit; ly += Math.cos(now * 0.0019 * p.wf + p.ph * 1.7) * jit;
+        } else {       /* the pupil: a golden-angle sunflower that slowly turns */
+          const g = side < 0 ? gz[0] : gz[1];
+          const pr = p.pr * E.rp * pscale, pa = p.pa + (rm ? 0 : now * 0.0005 * side);
+          const ox = Math.cos(pa) * pr, oy = Math.sin(pa) * pr;
+          lx = g.x * E.gx + ox; ly = g.y * E.gy + oy;
+          ly = lerp(ly, closeY + oy * 0.1, bk);
+          if (lv > 0) {
+            const sn = Math.sin(pa), f = p.pr * 0.72;
+            const hX = 16 * sn * sn * sn * f, hY = -(13 * Math.cos(pa) - 5 * Math.cos(2 * pa) - 2 * Math.cos(3 * pa) - Math.cos(4 * pa)) * f;
+            lx = lerp(lx, hX * hs, lv); ly = lerp(ly, (hY - 2.5 * f) * hs, lv);
+          }
+          la = 1 - bk * 0.88;
+        }
+        const q = project(lx + side * E.d, ly, p.z);
+        if (Q.eyeW >= 1) { tx = q.x; ty = q.y; ts = q.s; ta = la; }
+        else { tx = lerp(tx, q.x, Q.eyeW); ty = lerp(ty, q.y, Q.eyeW); ts = lerp(ts, q.s, Q.eyeW); ta = lerp(1, la, Q.eyeW); }
+      }
+      if (snap) { p.x = p.ox = tx; p.y = p.oy = ty; p.vx = p.vy = 0; }
+      else {
+        const k = (live && !p.rim ? Q.k * 1.5 : Q.k) * p.lag;
+        p.vx += (tx - p.x) * k * d; p.vy += (ty - p.y) * k * d;
+        p.vx += Math.cos(now * 0.0013 * p.wf + p.ph) * Q.wander * d;
+        p.vy += Math.sin(now * 0.0011 * p.wf + p.ph * 1.7) * Q.wander * d;
+        if (live && now - pointer.t < 1200) {   /* it notices you */
+          const mx = pointer.x - p.x, my = pointer.y - p.y, md = mx * mx + my * my;
+          if (md < 12100 && md > 1) { const f = (1 - Math.sqrt(md) / 110) * 0.005 * d; p.vx += mx * f; p.vy += my * f; }
+        }
+        const dp = Math.pow(Q.damp, d); p.vx *= dp; p.vy *= dp;
+        p.ox = p.x; p.oy = p.y;
+        p.x += p.vx * d; p.y += p.vy * d;
+      }
+      p.sc = ts; p.al = ta;
+    }
+
+    /* now and then a bolt jumps between the two eyes, across the overlap */
+    if (live && !rm && lv <= 0 && BL[0] < 0.2 && Math.random() < 0.006 * d) {
+      const a = P[0], b = P[RIM + Math.round(RIM / 2) % RIM];
+      if (a && b) addArc(now, a.x, a.y, b.x, b.y, 300, 1.8, false);
+    }
+  }
+
+  function eyeball(cx, cy, rx, ry, a) {
+    ctx.save(); ctx.translate(cx, cy); ctx.scale(1, Math.max(0.01, ry / rx));
+    const g = ctx.createRadialGradient(-rx * 0.22, -rx * 0.28, rx * 0.06, 0, 0, rx * 1.02);
+    if (light) { g.addColorStop(0, `rgba(255,255,255,${0.95 * a})`); g.addColorStop(0.75, `rgba(247,250,248,${0.84 * a})`); g.addColorStop(1, `rgba(232,239,235,${0.58 * a})`); }
+    else { g.addColorStop(0, `hsla(${hue | 0},92%,72%,${0.17 * a})`); g.addColorStop(0.7, `hsla(${hue | 0},92%,62%,${0.07 * a})`); g.addColorStop(1, `hsla(${hue | 0},92%,60%,0)`); }
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, TAU); ctx.fill(); ctx.restore();
+  }
+  function jag(x1, y1, x2, y2, amp) {
+    ctx.moveTo(x1, y1);
+    ctx.lineTo((x1 + x2) / 2 + (Math.random() - 0.5) * amp * 2, (y1 + y2) / 2 + (Math.random() - 0.5) * amp * 2);
+    ctx.lineTo(x2, y2);
+  }
+
+  function render(now) {
+    ctx.globalCompositeOperation = "source-over";
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalCompositeOperation = light ? "source-over" : "lighter";
+    const h0 = hue | 0, lvc = clamp(lv, 0, 1);
+
+    /* the eyeballs: white by day, like the emoji; a faint inner light by night */
+    if (Q.eyeW > 0.02) {
+      for (let e = 0; e < 2; e++) {
+        const side = e ? 1 : -1, bk = BL[e], q = project(side * E.d, E.ry * 0.2 * bk, 0);
+        const rx = E.rx * wide * q.s * br * cy_, ry = E.ry * wide * q.s * br * (1 - bk * 0.94);
+        const a = Q.eyeW * (1 - lvc);
+        if (a > 0.01) eyeball(q.x, q.y, rx, ry, a);
+      }
+    }
+    /* hearts, when someone asks for love */
+    if (lv > 0.02) {
+      for (let e = 0; e < 2; e++) {
+        const lx0 = (e ? 1 : -1) * E.d;
+        ctx.beginPath();
+        for (let j = 0; j <= 48; j++) {
+          const ht = (j / 48) * TAU, sn = Math.sin(ht);
+          const q = project(16 * sn * sn * sn * hs + lx0, (-(13 * Math.cos(ht) - 5 * Math.cos(2 * ht) - 2 * Math.cos(3 * ht) - Math.cos(4 * ht)) - 2.5) * hs, 0);
+          if (j) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = light ? `rgba(232,121,201,${0.34 * lvc})` : `hsla(318,92%,66%,${0.16 * lvc})`;
+        ctx.fill();
+      }
+    }
+
+    /* micro-lightning: the electricity lives inside the being */
+    if (!rm) {
+      ctx.lineWidth = light ? 1.15 : 1;
+      const al = clamp((light ? 0.3 : 0.38) * (0.45 + Q.lit), 0, 0.85);
+      ctx.strokeStyle = light ? `hsla(${h0},60%,22%,${al})` : `hsla(${h0},100%,80%,${al})`;
+      ctx.beginPath();
+      if (Q.eyeW > 0.6) {
+        const n = Math.round(RIM * 0.5);
+        for (let j = 0; j < n; j++) {
+          const s = (Math.random() * RIM) | 0, base = Math.random() < 0.5 ? 0 : RIM;
+          const a = P[base + s], b = P[base + ((s + 1) % RIM)];
+          if (a.on && b.on && a.al > 0.3) jag(a.x, a.y, b.x, b.y, 3.2);
+        }
+        for (let j = 0; j < 8; j++) {
+          const base = RIM * 2 + (Math.random() < 0.5 ? 0 : PUP);
+          const a = P[base + ((Math.random() * PUP) | 0)], b = P[base + ((Math.random() * PUP) | 0)];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          if (a.al > 0.5 && dx * dx + dy * dy < 400) jag(a.x, a.y, b.x, b.y, 2.4);
+        }
+      } else {
+        const n = W < 600 ? 40 : 64;
+        for (let j = 0; j < n; j++) {
+          const a = P[(Math.random() * N) | 0], b = P[(Math.random() * N) | 0];
+          if (!a.on || !b.on) continue;
+          const dx = a.x - b.x, dy = a.y - b.y, dd = dx * dx + dy * dy;
+          if (dd > 16 && dd < 1600) jag(a.x, a.y, b.x, b.y, 5);
+        }
+      }
+      ctx.stroke();
+    }
+
+    /* the lights themselves */
+    const ph = (hue + 26) % 360;
+    ctx.lineCap = "round";
+    for (let i = 0; i < N; i++) {
+      const p = P[i];
+      if (!p.on) continue;
+      const hh = (p.rim ? hue : ph) + p.hz;
+      let size = p.s * p.sc;
+      if (p === first && S.mode === "intro" && now - S.t0 < S.L.arrive) size *= 1.7 + 0.5 * Math.sin((now - S.t0) / 260);
+      const a = p.al * (light ? 0.95 : 0.9) * (0.8 + 0.2 * Q.lit);
+      if (a < 0.02) continue;
+      if (Q.trails) {   /* motion streaks while they fly */
+        const vx = p.x - p.ox, vy = p.y - p.oy, v2 = vx * vx + vy * vy;
+        if (v2 > 6) {
+          ctx.globalAlpha = Math.min(0.7, v2 / 160) * a;
+          ctx.strokeStyle = light ? `hsl(${hh | 0},60%,22%)` : `hsl(${hh | 0},100%,72%)`;
+          ctx.lineWidth = size * 0.9;
+          ctx.beginPath(); ctx.moveTo(p.x - vx * 2.4, p.y - vy * 2.4); ctx.lineTo(p.x, p.y); ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = a;
+      const sd = size * 6.4;
+      ctx.drawImage(sprite(hh), p.x - sd / 2, p.y - sd / 2, sd, sd);
+    }
+    ctx.globalAlpha = 1;
+
+    /* catchlights: the small white light that makes an eye feel alive */
+    if (Q.eyeW > 0.5 && lv < 0.5) {
+      for (let e = 0; e < 2; e++) {
+        const side = e ? 1 : -1, g = gz[e], bk = BL[e];
+        if (bk > 0.55) continue;
+        const q = project(side * E.d + g.x * E.gx - E.rp * 0.36 * pscale, g.y * E.gy - E.rp * 0.42 * pscale, -26);
+        const sd = E.rp * 0.62 * q.s;
+        ctx.globalAlpha = clamp((1 - bk * 1.6) * Q.eyeW, 0, 1);
+        ctx.drawImage(sprWhite, q.x - sd / 2, q.y - sd / 2, sd, sd);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    drawFx(now, h0);
+  }
+
+  function drawArc(a, now, h0) {
+    const age = (now - a.t0) / a.life;
+    if (age < 0) return true;
+    if (age >= 1) return false;
+    const seed = a.seed + Math.floor((now - a.t0) / 70) * 17.3;   /* re-forked every 70ms: real lightning flickers */
+    const al = Math.pow(1 - age, 1.5) * (0.6 + 0.4 * prand(seed));
+    const dx = a.x2 - a.x1, dy = a.y2 - a.y1, len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len, ny = dx / len, segs = clamp(Math.round(len / 20), 5, 18), amp = Math.min(24, len * 0.14);
+    let bx = a.x1, by = a.y1;
+    ctx.beginPath(); ctx.moveTo(a.x1, a.y1);
+    for (let s = 1; s < segs; s++) {
+      const k = s / segs, off = (prand(seed + s * 3.1) - 0.5) * 2 * amp * Math.sin(k * Math.PI);
+      const x = a.x1 + dx * k + nx * off, y = a.y1 + dy * k + ny * off;
+      ctx.lineTo(x, y);
+      if (s === segs >> 1) { bx = x; by = y; }
+    }
+    ctx.lineTo(a.x2, a.y2);
+    const h = a.warm ? 44 : h0;
+    ctx.lineJoin = "round";
+    ctx.lineWidth = a.w * 3.2;
+    ctx.strokeStyle = light ? `hsla(${h},60%,30%,${al * 0.14})` : `hsla(${h},100%,70%,${al * 0.2})`;
+    ctx.stroke();
+    ctx.lineWidth = a.w;
+    ctx.strokeStyle = light ? `hsla(${h},70%,${a.warm ? 28 : 20}%,${al})` : `hsla(${h},100%,${a.warm ? 78 : 86}%,${al})`;
+    ctx.stroke();
+    if (len > 60) {   /* a fork, the way real lightning branches */
+      const fx2 = bx + nx * len * 0.22 * (prand(seed + 7) - 0.5) * 2 + dx * 0.2, fy2 = by + ny * len * 0.22 * (prand(seed + 8) - 0.5) * 2 + dy * 0.2;
+      ctx.beginPath(); ctx.moveTo(bx, by);
+      ctx.lineTo((bx + fx2) / 2 + nx * 7 * (prand(seed + 9) - 0.5), (by + fy2) / 2 + ny * 7 * (prand(seed + 10) - 0.5));
+      ctx.lineTo(fx2, fy2);
+      ctx.lineWidth = a.w * 0.6; ctx.stroke();
+    }
+    return true;
+  }
+
+  function drawFx(now, h0) {
+    for (let i = fx.arcs.length - 1; i >= 0; i--) if (!drawArc(fx.arcs[i], now, h0)) fx.arcs.splice(i, 1);
+    for (let i = fx.waves.length - 1; i >= 0; i--) {   /* shockwaves */
+      const w = fx.waves[i], age = (now - w.t0) / 1000;
+      if (age < 0) continue;
+      if (age >= 1) { fx.waves.splice(i, 1); continue; }
+      const r = w.max * easeOut(age), a = Math.pow(1 - age, 1.7) * 0.75;
+      ctx.lineWidth = w.w * (1 - age * 0.6);
+      ctx.strokeStyle = light ? `rgba(16,25,21,${a * 0.8})` : `hsla(${h0},100%,78%,${a})`;
+      ctx.beginPath(); ctx.ellipse(E.cx, E.cy, r, r * 0.9, 0, 0, TAU); ctx.stroke();
+    }
+    const fa = (now - fx.flareT) / 1350;   /* the anamorphic flare */
+    if (fa >= 0 && fa < 1) {
+      const a = Math.pow(1 - fa, 1.5) * fx.flareA, len = W * (0.3 + 0.9 * easeOut(Math.min(1, fa * 2.6)));
+      ctx.save(); ctx.translate(E.cx, E.cy);
+      ctx.save(); ctx.scale(len / 50, 0.24);
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 50);
+      if (light) { g.addColorStop(0, `rgba(255,255,255,${a})`); g.addColorStop(1, "rgba(255,255,255,0)"); }
+      else { g.addColorStop(0, `hsla(${h0},100%,92%,${a})`); g.addColorStop(0.35, `hsla(${h0},100%,70%,${a * 0.4})`); g.addColorStop(1, `hsla(${h0},100%,60%,0)`); }
+      ctx.fillStyle = g; ctx.fillRect(-50, -50, 100, 100);
+      ctx.restore();
+      const c = light ? "16,25,21" : "255,255,255", lg = ctx.createLinearGradient(-len / 2, 0, len / 2, 0);
+      lg.addColorStop(0, `rgba(${c},0)`); lg.addColorStop(0.5, `rgba(${c},${a * (light ? 0.7 : 0.95)})`); lg.addColorStop(1, `rgba(${c},0)`);
+      ctx.fillStyle = lg; ctx.fillRect(-len / 2, -0.9, len, 1.8);   /* by day: the contour line */
+      ctx.restore();
+    }
+    const fl = (now - fx.flashT) / 720;   /* the flash */
+    if (fl >= 0 && fl < 1) {
+      const a = Math.pow(1 - fl, 2.4) * fx.flashA, R = Math.hypot(W, H);
+      const g = ctx.createRadialGradient(E.cx, E.cy, 0, E.cx, E.cy, R * (fx.flashA > 0.7 ? 0.9 : 0.42));
+      if (light) { g.addColorStop(0, `rgba(250,253,251,${a * 0.95})`); g.addColorStop(1, "rgba(250,253,251,0)"); }
+      else { g.addColorStop(0, `rgba(235,252,255,${a})`); g.addColorStop(0.35, `hsla(${h0},100%,72%,${a * 0.45})`); g.addColorStop(1, `hsla(${h0},100%,60%,0)`); }
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    const d = Math.min(50, now - last || 16.7) / 16.667;
+    last = now;
+    step(now, d);
+    render(now);
+  }
+  function start() { if (raf || rm || document.hidden) return; last = performance.now(); raf = requestAnimationFrame(frame); }
+  function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
+
+  /* ── MOMENTS ── */
+  function startIntro(now, short) {
+    S.mode = "intro"; S.L = TL; S.replay = false; S.fired = false; S.opened = false; S.t0 = now; S.short = short;
+    root.classList.add("intro");
+    skipBtn.hidden = false;
+    blink.forced = true;
+    if (short) {   /* a returning visitor gets the climax, not the whole overture */
+      S.t0 = now - (TL.vortex + 700);
+      const m = Math.min(W, H);
+      for (const p of P) { p.on = true; const r = m * 0.3 * p.ar; p.x = p.ox = E.cx + Math.cos(p.a) * r; p.y = p.oy = E.cy + Math.sin(p.a) * r * 0.36; p.vx = p.vy = 0; }
+    }
+  }
+  function skip(now) {
+    if (S.mode !== "intro" || S.fired) return;
+    if (now - S.t0 >= S.L.collapse) return;
+    const m = Math.min(W, H);
+    for (const p of P) if (!p.on) { p.on = true; const a = rand(0, TAU), r = m * rand(0.1, 0.3); p.x = p.ox = E.cx + Math.cos(a) * r; p.y = p.oy = E.cy + Math.sin(a) * r * 0.5; p.vx = p.vy = 0; }
+    S.t0 = now - S.L.collapse;
+  }
+  function impact(now) {
+    S.fired = true;
+    const strong = !S.replay, m = Math.min(W, H), R = Math.hypot(W, H);
+    fx.flashT = now; fx.flashA = strong ? 1 : 0.5;
+    fx.flareT = now; fx.flareA = strong ? 1 : 0.75;
+    fx.waves.push({ t0: now, max: R * 0.62, w: 3 }, { t0: now + 150, max: R * 0.36, w: 2 });
+    for (const p of P) {
+      p.on = true;
+      const a = rand(0, TAU), s = rand(5, 13) * (strong ? 1 : 0.75);
+      p.x = p.ox = E.cx + rand(-3, 3); p.y = p.oy = E.cy + rand(-3, 3);
+      p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s * 0.82;
+    }
+    for (let i = 0, n = strong ? 7 : 4; i < n; i++) {   /* the discharge */
+      const a = rand(0, TAU), r = m * rand(0.22, 0.46);
+      addArc(now, E.cx, E.cy, E.cx + Math.cos(a) * r, E.cy + Math.sin(a) * r * 0.8, rand(260, 520), 2.6, true);
+    }
+    blink.forced = true; blink.anim = null;
+    root.classList.add("ignited", "hit");
+    setTimeout(() => root.classList.remove("hit"), 800);
+    if (strong) {   /* the frame opens: 2.39:1 to full screen */
+      setTimeout(() => root.classList.add("curtain"), 70);
+      setTimeout(() => { root.classList.remove("intro"); skipBtn.hidden = true; }, 1500);
+    }
+    Sound.impact(strong ? 1 : 0.7);
+    if (!strong) buzz([0, 28, 46, 70]);
+  }
+  function goLive(now) {
+    const wasIntro = S.mode === "intro";
+    S.mode = "live";
+    root.classList.add("live");
+    idle.nextGlance = now + rand(16000, 23000); idle.nextLead = now + rand(9000, 14000);
+    runSeq(now, wasIntro && !S.short ? firstSeq() : [{ x: 0, y: 0.03, ms: 900 }].concat(glanceSeq()));
+    blink.next = now + rand(1800, 3400);
+  }
+  function gather(now) {   /* the gold dot: the whole convergence, again, on purpose */
+    if (S.mode !== "live" || rm) return;
+    S.mode = "gather"; S.L = GL; S.replay = true; S.fired = false; S.opened = false; S.t0 = now;
+    for (const p of P) { const dx = p.x - E.cx, dy = (p.y - E.cy) / 0.36; p.a = Math.atan2(dy, dx); p.ar = clamp(Math.hypot(dx, dy) / (E.rx * 2.1), 0.32, 1); }
+    blink.anim = { t0: now, c: 150, h: 1e6, o: 1, which: "both" };
+    Sound.riser(GL.impact / 1000);
+    buzz(12);
+  }
+  let boopT = 0;
+  function boop(now, x, y) {
+    widen.t0 = now;
+    clearTimeout(boopT);
+    boopT = setTimeout(() => startBlink(performance.now(), "both"), 380);
+    for (const p of P) { const dx = p.x - x, dy = p.y - y, dd = Math.hypot(dx, dy) || 1; if (dd < 200) { const f = (1 - dd / 200) * 6.5; p.vx += (dx / dd) * f; p.vy += (dy / dd) * f; } }
+    Sound.boop(); buzz(12);
+  }
+  function hearts(now) { if (rm || S.mode !== "live") return; love.t0 = now; blink.anim = null; Sound.hearts(); buzz([0, 22, 110, 30]); }
+  function zap(now, x, y) {   /* the nearer eye reaches toward you */
+    const side = x < E.cx ? -1 : 1, ex = E.cx + side * E.d + hx, ey = E.cy + hy;
+    const ang = Math.atan2(y - ey, x - ex);
+    addArc(now, ex + Math.cos(ang) * E.rx * 1.02, ey + Math.sin(ang) * E.ry * 1.02, x, y, 460, 2.4, false);
+    pointer.x = x; pointer.y = y; pointer.t = now;
+    Sound.zap(clamp((x / W) * 2 - 1, -1, 1)); buzz(8);
+  }
+  function drawStatic() {   /* reduced motion: one still frame, eyes open, glancing the way the emoji does */
+    resize();
+    S.mode = "live"; livePhase();
+    blink.forced = false; blink.anim = null;
+    gz[0].x = gz[1].x = -0.55; gz[0].y = gz[1].y = 0.1; head.x = -0.2; head.y = 0.05;
+    for (const p of P) p.on = true;
+    snap = true; step(performance.now(), 1); snap = false;
+    render(performance.now());
+  }
+
+  /* ── THE READER: pointer, touch, keys, tilt ── */
+  let down = null, holdT = 0, suppressClick = false, lastEyeClick = 0;
+  addEventListener("pointermove", (e) => {
+    pointer.x = e.clientX; pointer.y = e.clientY; pointer.t = lastInput = performance.now();
+    if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 12) clearTimeout(holdT);
+  }, { passive: true });
+  addEventListener("pointerdown", (e) => {
+    const now = performance.now();
+    lastInput = now; pointer.x = e.clientX; pointer.y = e.clientY; pointer.t = now;
+    if (S.mode === "intro") { skip(now); return; }
+    const onEyes = eyesBtn.contains(e.target);
+    down = { x: e.clientX, y: e.clientY, t: now, interactive: !!(e.target.closest && e.target.closest("button, a")) };
+    if (onEyes && !rm) holdT = setTimeout(() => { suppressClick = true; hearts(performance.now()); }, 650);
+  }, { passive: true });
+  addEventListener("pointerup", (e) => {
+    const now = performance.now();
+    clearTimeout(holdT);
+    if (down && !down.interactive && S.mode === "live" && !rm && now - down.t < 320 && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 10) zap(now, e.clientX, e.clientY);
+    down = null;
+  }, { passive: true });
+  addEventListener("pointercancel", () => { clearTimeout(holdT); down = null; }, { passive: true });
+  document.documentElement.addEventListener("pointerleave", () => { pointer.t = -1e9; });
+
+  eyesBtn.addEventListener("click", (e) => {
+    const now = performance.now();
+    if (suppressClick) { suppressClick = false; return; }
+    if (S.mode !== "live" || rm) return;
+    requestTilt();
+    if (now - lastEyeClick < 330) { clearTimeout(boopT); startBlink(now, "R", 1.25); Sound.tick(0.5); buzz(8); lastEyeClick = 0; return; }   /* a wink */
+    lastEyeClick = now;
+    const r = eyesBtn.getBoundingClientRect();
+    boop(now, e.clientX || r.left + r.width / 2, e.clientY || r.top + r.height / 2);
+  });
+  dotBtn.addEventListener("click", () => { const now = performance.now(); if (S.mode === "live") gather(now); else skip(now); });
+  dotBtn.addEventListener("pointerdown", (e) => {   /* tap parity: every hover has a touch twin */
+    if (e.pointerType !== "touch") return;
+    dotBtn.classList.add("performed"); setTimeout(() => dotBtn.classList.remove("performed"), 900);
+  }, { passive: true });
+  soundBtn.addEventListener("click", () => {
+    const on = Sound.toggle();
+    soundBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    if (on && S.mode === "live") { focusEl = soundBtn; focusUntil = performance.now() + 1100; setTimeout(() => startBlink(performance.now(), "both"), 520); }
+  });
+  skipBtn.addEventListener("click", () => skip(performance.now()));
+
+  root.querySelectorAll("[data-look], .dot").forEach((el) => {   /* the being looks where your attention goes */
+    const look = () => {
+      focusEl = el; focusUntil = performance.now() + 2200;
+      if (el === title) { title.classList.add("performed"); clearTimeout(title._t); title._t = setTimeout(() => title.classList.remove("performed"), 700); }
+    };
+    el.addEventListener("pointerenter", look);
+    el.addEventListener("focusin", look);
+  });
+
+  let typed = "";
+  addEventListener("keydown", (e) => {
+    const now = performance.now();
+    lastInput = now;
+    if (S.mode === "intro" && (e.key === "Escape" || e.key === "Enter" || e.key === " ")) { skip(now); return; }
+    const dirs = { ArrowLeft: [-0.9, 0.05], ArrowRight: [0.9, 0.05], ArrowUp: [0, -0.8], ArrowDown: [0, 0.85] };
+    if (dirs[e.key]) { kb.x = dirs[e.key][0]; kb.y = dirs[e.key][1]; kb.t = now; e.preventDefault(); return; }
+    if (e.key && e.key.length === 1) { typed = (typed + e.key.toLowerCase()).slice(-4); if (typed === "love") { typed = ""; hearts(now); } }
+  });
+
+  function onTilt(e) {
+    if (e.gamma == null || e.beta == null) return;
+    if (tilt.by == null) { tilt.by = e.beta; tilt.bx = e.gamma; }
+    tilt.by = lerp(tilt.by, e.beta, 0.012); tilt.bx = lerp(tilt.bx, e.gamma, 0.006);
+    const x = clamp((e.gamma - tilt.bx) / 24, -1, 1), y = clamp((e.beta - tilt.by) / 16, -1, 1);
+    if (Math.abs(x) > 0.12 || Math.abs(y) > 0.12) { tilt.x = x; tilt.y = y; tilt.t = performance.now(); }
+  }
+  let tiltAsked = false;
+  function requestTilt() {   /* iOS asks once, on a deliberate tap of the eyes */
+    if (tiltAsked) return;
+    tiltAsked = true;
+    const D = window.DeviceOrientationEvent;
+    if (D && typeof D.requestPermission === "function") D.requestPermission().then((s) => { if (s === "granted") addEventListener("deviceorientation", onTilt); }).catch(() => {});
+  }
+  if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission !== "function") addEventListener("deviceorientation", onTilt);
+
+  const baseTitle = document.title;
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { document.title = "👀"; stop(); Sound.suspend(); return; }
+    document.title = baseTitle;
+    Sound.resume();
+    if (rm) return;
+    start();
+    if (S.mode === "live") { const n = performance.now(); startBlink(n, "both"); blink.dbl = true; runSeq(n, [{ x: 0, y: 0.02, ms: 1100 }]); }   /* you came back */
+  });
+
+  const onMode = () => { readMode(); if (rm) drawStatic(); };
+  if (mLight.addEventListener) mLight.addEventListener("change", onMode);
+  if (window.MutationObserver) new MutationObserver(onMode).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  let rt = 0;
+  addEventListener("resize", () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      const before = N;
+      resize();
+      if (bucket() !== before) { build(); for (const p of P) { p.on = true; p.x = p.ox = E.cx + rand(-40, 40); p.y = p.oy = E.cy + rand(-30, 30); } }
+      if (rm) drawStatic();
+    }, 120);
+  });
+  if (window.ResizeObserver) new ResizeObserver(() => { measure(); if (rm) drawStatic(); }).observe(eyesBtn);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); if (rm) drawStatic(); });
+
+  const onReduce = () => {
+    rm = mReduce.matches;
+    if (rm) { stop(); root.classList.remove("intro"); root.classList.add("ignited", "live"); skipBtn.hidden = true; drawStatic(); }
+    else { S.mode = "live"; blink.forced = false; start(); }
+  };
+  if (mReduce.addEventListener) mReduce.addEventListener("change", onReduce);
+
+  /* ── BOOT ── */
+  readMode();
+  makeGrain();
+  resize();
+  build();
+  sprWhite = makeSprite(0, false, true);
+  try { console.log("%c👀  Motus.Events", "font: 800 15px Sora, system-ui, sans-serif"); console.log("Psst. Type love."); } catch (e) { /* quiet consoles are fine */ }
+  if (rm) { root.classList.add("ignited", "live"); drawStatic(); return; }
+  let seen = false;
+  try { seen = sessionStorage.getItem("motus.events:seen") === "1"; sessionStorage.setItem("motus.events:seen", "1"); } catch (e) { /* storage can be blocked */ }
+  startIntro(performance.now(), seen);
+  start();
+})();
+</script>
+<!-- /artifact:body -->
+</body>
+</html>
