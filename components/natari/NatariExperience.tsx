@@ -10,10 +10,12 @@
 // One charged element at a time. The swarm inhabits it and absorbs its essence.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Aurora from "./Aurora";
 import Swarm, { type Mood } from "./Swarm";
 import Breathe from "./Breathe";
+import CrisisCard, { type CrisisPalette } from "../CrisisCard";
+import { isCrisis, isSensitive } from "../../lib/safety";
 import {
   divine, readingToMarkup, heartbeat, TWELVE, ASKS, MENTOR_ASKS,
   type OracleId, type LeveragePoint,
@@ -21,7 +23,7 @@ import {
 import {
   DAVARA_CHANNEL, DAVARA_CHANNEL_SHORT, WRAP, ease,
   ink, inkSecondary, label as labelInk, accent, signal, goldText, gold, onGold,
-  cyan, violet, glass, glassRaised, display, body as bodyFont, mono,
+  cyan, violet, raised, glass, glassRaised, display, body as bodyFont, mono,
 } from "./theme";
 
 // ── types ───────────────────────────────────────────────────────────────────
@@ -31,15 +33,59 @@ interface Segment { kind: string; text: string; meta: Record<string, string> }
 interface Msg {
   id: number; role: "user" | "natari"; who?: OracleId;
   text?: string; raw?: string; segments?: Segment[]; streaming?: boolean; sigil?: string;
+  // the floor, remembered — a crisis reading keeps its card across reloads
+  crisis?: boolean; sensitive?: boolean;
 }
 interface Mark {
   id: string; who: OracleId; question: string; text: string;
   createdAt: number; dueAt: number; status: "pending" | "true" | "miss";
+  updatedAt?: number;
 }
 
 const CONVO_KEY = "natari/convo/v1";
 const MARKS_KEY = "natari/marks/v1";
 const DAY = 86400000;
+const KEEP = 120; // messages kept on this device — a thread, not an archive
+
+// The ledger, read defensively. null means unreadable: never write over it.
+function readMarks(): Mark[] | null {
+  try {
+    const raw = localStorage.getItem(MARKS_KEY);
+    if (!raw) return [];
+    const v: unknown = JSON.parse(raw);
+    if (!Array.isArray(v)) return null;
+    return v.filter((m): m is Mark =>
+      !!m && typeof m.id === "string" && typeof m.text === "string" && typeof m.question === "string"
+      && typeof m.createdAt === "number" && typeof m.dueAt === "number");
+  } catch { return null; }
+}
+
+// Two tabs, one ledger: merge by id, and the most recently touched entry wins.
+const touched = (m: Mark) => m.updatedAt ?? m.createdAt;
+function mergeMarks(mine: Mark[], theirs: Mark[]): Mark[] {
+  const by = new Map<string, Mark>();
+  for (const m of theirs) by.set(m.id, m);
+  for (const m of mine) { const t = by.get(m.id); if (!t || touched(m) >= touched(t)) by.set(m.id, m); }
+  return [...by.values()].sort((a, b) => b.createdAt - a.createdAt);
+}
+
+// Calendar days on this device's clock — "tomorrow" means tomorrow, not 24 hours.
+const startOfDay = (t: number) => new Date(t).setHours(0, 0, 0, 0);
+// N calendar days on, same wall-clock time — DST never moves a window.
+const addDays = (t: number, n: number) => { const d = new Date(t); d.setDate(d.getDate() + n); return d.getTime(); };
+const daysUntil = (t: number, from: number) => Math.round((startOfDay(t) - startOfDay(from)) / DAY);
+const dueDate = (t: number) => new Date(t).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+const dueTime = (t: number) => new Date(t).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+
+// The crisis card in Natari's verified ink — 7:1+ on the raised panel.
+const CRISIS_PALETTE: CrisisPalette = {
+  ink, accent, surface: raised, border: "1px solid rgba(123,227,234,.45)", font: bodyFont,
+};
+
+const srOnly: React.CSSProperties = {
+  position: "absolute", width: 1, height: 1, padding: 0, margin: -1,
+  overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap", border: 0,
+};
 
 // ── marker parsing (shared language with the live model) ────────────────────
 const MARKER = /\[\[([A-Za-z]+)((?:\|[^\]|]*)*)\]\]/g;
@@ -56,7 +102,9 @@ function parseMeta(s?: string): Record<string, string> {
 }
 
 function parseMarkup(raw: string): Segment[] {
-  const trim = (t: string) => t.replace(/\[\[[^\]]*$/, "").trim();
+  // A complete marker is consumed above, so any marker-shaped tail — "[",
+  // "[[MARK|days=12]" — is debris from a cut or a chunk still in flight.
+  const trim = (t: string) => t.replace(/\[(?:\[[A-Za-z]*(?:\|[^\]\n]*)*\]?)?\s*$/, "").trim();
   const ms: { i: number; len: number; kind: string; meta: string }[] = [];
   let m: RegExpExecArray | null;
   MARKER.lastIndex = 0;
@@ -70,7 +118,8 @@ function parseMarkup(raw: string): Segment[] {
     const end = k + 1 < ms.length ? ms[k + 1].i : raw.length;
     segs.push({ kind: mk.kind, text: trim(raw.slice(start, end)), meta: parseMeta(mk.meta) });
   });
-  return segs;
+  // A Mark with no window was voided by a cut channel — it never shows.
+  return segs.filter((s) => s.kind !== "mark" || s.meta.days);
 }
 
 const segsToText = (s?: Segment[]) =>
@@ -94,6 +143,17 @@ const SEG: Record<string, { label: string; color: string; big?: boolean }> = {
   seal: { label: "", color: inkSecondary },
 };
 
+// What a screen reader hears when a reading seals — labels, never markers.
+function spoken(segs: Segment[]): string {
+  return segs.map((s) => {
+    const l = (SEG[s.kind]?.label ?? "").split(" · ")[0];
+    return l ? `${l}: ${s.text}` : s.text;
+  }).join(" ");
+}
+
+// A crisis or sensitive ask never shows a dated call, whatever the stream said.
+const shownSegs = (m: Msg) => (m.crisis || m.sensitive ? (m.segments ?? []).filter((s) => s.kind !== "mark") : m.segments ?? []);
+
 // ── the console ─────────────────────────────────────────────────────────────
 
 export default function NatariExperience() {
@@ -103,11 +163,13 @@ export default function NatariExperience() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [marks, setMarks] = useState<Mark[]>([]);
   const [input, setInput] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busyWho, setBusyWho] = useState<OracleId | null>(null); // which voice is mid-reading
+  const busy = busyWho !== null;
   const [thinking, setThinking] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [now, setNow] = useState(0);
   const [breathe, setBreathe] = useState(false);
+  const [announce, setAnnounce] = useState("");
 
   // the charge: which element the swarm inhabits, and the essence it absorbs
   const [charge, setCharge] = useState<string | null>("nt-keystone");
@@ -117,34 +179,98 @@ export default function NatariExperience() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const msgsRef = useRef(messages); msgsRef.current = messages;
   const whoRef = useRef(who); whoRef.current = who;
+  const chamberRef = useRef(chamber); chamberRef.current = chamber;
   const abortRef = useRef<AbortController | null>(null);
+  const stickRef = useRef(true); // is the reader resting at the bottom of the thread?
+  const marksOk = useRef(false); // the ledger was read cleanly — only then may we write it
 
   const beat = useMemo(() => (now ? heartbeat(new Date(now)) : null), [now]);
 
   useEffect(() => {
     setNow(Date.now());
+    // The thread and the ledger restore apart — a bad thread never costs a Mark.
     try {
       const c = localStorage.getItem(CONVO_KEY);
       if (c) {
-        const saved = JSON.parse(c) as { who: OracleId; messages: Msg[] };
-        if (saved.messages?.length) {
-          nextId = Math.max(...saved.messages.map((m) => m.id)) + 1;
-          setMessages(saved.messages.map((m) => m.role === "natari" ? { ...m, streaming: false, segments: parseMarkup(m.raw ?? "") } : m));
-          if (saved.who === "mentor") setWho("mentor");
+        const saved = JSON.parse(c) as { who?: OracleId; messages?: Msg[] } | null;
+        const list: unknown = saved?.messages;
+        const ms = Array.isArray(list)
+          ? (list as Msg[]).filter((m) => !!m && typeof m.id === "number" && (m.role === "user" || m.role === "natari"))
+          : [];
+        if (ms.length) {
+          nextId = Math.max(...ms.map((m) => m.id)) + 1;
+          setMessages(ms.map((m, i, all) => {
+            if (m.role !== "natari") return m;
+            // Older sittings carry no flags — read them again from the question.
+            const q = all[i - 1]?.role === "user" ? all[i - 1].text ?? "" : "";
+            return {
+              ...m, streaming: false, segments: parseMarkup(m.raw ?? ""),
+              crisis: m.crisis ?? (isCrisis(q) || undefined), sensitive: m.sensitive ?? (isSensitive(q) || undefined),
+            };
+          }));
+          if (saved?.who === "mentor") setWho("mentor");
         }
       }
-      const mk = localStorage.getItem(MARKS_KEY);
-      if (mk) setMarks(JSON.parse(mk) as Mark[]);
     } catch { /* a fresh sitting */ }
+    const mk = readMarks();
+    if (mk) { setMarks(mk); marksOk.current = true; }
     setHydrated(true);
     return () => abortRef.current?.abort();
   }, []);
 
-  useEffect(() => { if (hydrated) try { localStorage.setItem(CONVO_KEY, JSON.stringify({ who, messages })); } catch { /* */ } }, [messages, who, hydrated]);
-  useEffect(() => { if (hydrated) try { localStorage.setItem(MARKS_KEY, JSON.stringify(marks)); } catch { /* */ } }, [marks, hydrated]);
+  // Another tab touched the ledger — take its news, keep ours.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== MARKS_KEY) return;
+      const theirs = readMarks();
+      if (!theirs) return;
+      marksOk.current = true;
+      setMarks((p) => { const next = mergeMarks(p, theirs); return JSON.stringify(next) === JSON.stringify(p) ? p : next; });
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
-  const scrollDown = useCallback(() => {
-    requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }));
+  // The clock ticks: windows open while you watch, and the lever turns at midnight.
+  useEffect(() => {
+    const tick = () => { if (!document.hidden) setNow(Date.now()); };
+    const iv = setInterval(tick, 60000);
+    document.addEventListener("visibilitychange", tick);
+    return () => { clearInterval(iv); document.removeEventListener("visibilitychange", tick); };
+  }, []);
+
+  // The thread is written when a reading seals, never per token. Segments
+  // re-derive from raw on load, so only raw is kept.
+  useEffect(() => {
+    if (!hydrated || busy) return;
+    try {
+      const keep = messages.slice(-KEEP).map((m) => ({ ...m, segments: undefined, streaming: undefined }));
+      localStorage.setItem(CONVO_KEY, JSON.stringify({ who, messages: keep }));
+    } catch { /* */ }
+  }, [messages, who, hydrated, busy]);
+
+  // The ledger merges before it writes, so a stale tab never erases a newer Mark.
+  useEffect(() => {
+    if (!hydrated || !marksOk.current) return;
+    try {
+      const merged = mergeMarks(marks, readMarks() ?? []);
+      const next = JSON.stringify(merged);
+      if (localStorage.getItem(MARKS_KEY) !== next) localStorage.setItem(MARKS_KEY, next);
+      if (next !== JSON.stringify(marks)) setMarks(merged);
+    } catch { /* */ }
+  }, [marks, hydrated]);
+
+  // Follow the stream only while the reader rests at the bottom of its own thread.
+  const scrollDown = useCallback((forWho: OracleId, smooth = false) => {
+    requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (!el || !stickRef.current || chamberRef.current !== (forWho === "mentor" ? "mentor" : "oracle")) return;
+      el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+    });
+  }, []);
+  const onScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (el) stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   }, []);
 
   const buildHistory = useCallback((ms: Msg[], forWho: OracleId) => {
@@ -164,13 +290,27 @@ export default function NatariExperience() {
     if (!text || busy) return;
     setInput("");
     const asWho = whoRef.current;
+    // The floor, read before anything leaves the device. The live voice still
+    // answers; this side guards the Mark, the chime, and the card.
+    const crisis = isCrisis(text);
+    const sensitive = isSensitive(text);
     const history = buildHistory(msgsRef.current, asWho);
     const uid = nextId++, oid = nextId++;
+    const voice = asWho === "mentor" ? "The Mentor" : "Natari";
+    // Each voice rests in its own tempo — and only touches the swarm while its chamber is open.
+    const restMood: Mood = asWho === "mentor" ? "gentle" : "orbit";
+    const restHue = asWho === "mentor" ? 190 : 265;
+    const here = () => chamberRef.current === (asWho === "mentor" ? "mentor" : "oracle");
     // Both turns carry `who` so each chamber keeps its own thread.
-    setMessages((p) => [...p, { id: uid, role: "user", who: asWho, text }, { id: oid, role: "natari", who: asWho, raw: "", segments: [], streaming: true }]);
-    setBusy(true); setThinking(true);
+    setMessages((p) => [...p, { id: uid, role: "user", who: asWho, text }, {
+      id: oid, role: "natari", who: asWho, raw: "", segments: [], streaming: true,
+      crisis: crisis || undefined, sensitive: sensitive || undefined,
+    }]);
+    setBusyWho(asWho); setThinking(true);
+    setAnnounce(`${voice} is reading…`);
     setMood("gather"); setCharge("nt-stream");
-    scrollDown();
+    stickRef.current = true;
+    scrollDown(asWho);
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -178,23 +318,25 @@ export default function NatariExperience() {
 
     const onChunk = (c: string) => {
       acc += c;
-      if (first && acc.trim()) { first = false; setThinking(false); setMood("orbit"); }
+      if (first && acc.trim()) { first = false; setThinking(false); if (here()) setMood(restMood); }
       const segs = parseMarkup(acc);
       if (segs.length > segCount) {
         segCount = segs.length;
-        vibrate(6);
+        if (!crisis) vibrate(6);
         const last = segs[segs.length - 1];
         // essence absorption — the being takes on the segment it is reading
-        if (last.kind === "leverage") {
-          const n = parseInt(last.meta.n, 10);
-          const lp = TWELVE.find((l) => l.n === n);
-          setEssence(lp ? lp.hue : 285);
-        } else if (last.kind === "structure") setEssence(255);
-        else if (last.kind === "door") setEssence(190);
-        else if (last.kind === "mark") setEssence(45);
+        if (here()) {
+          if (last.kind === "leverage") {
+            const n = parseInt(last.meta.n, 10);
+            const lp = TWELVE.find((l) => l.n === n);
+            setEssence(lp ? lp.hue : 285);
+          } else if (last.kind === "structure") setEssence(255);
+          else if (last.kind === "door") setEssence(190);
+          else if (last.kind === "mark" && !crisis && !sensitive) setEssence(45);
+        }
       }
       setMessages((p) => p.map((m) => (m.id === oid ? { ...m, raw: acc, segments: segs } : m)));
-      scrollDown();
+      scrollDown(asWho);
     };
 
     try {
@@ -226,60 +368,69 @@ export default function NatariExperience() {
     const finalSegs = parseMarkup(acc);
     const sig = SIGILS[hashStr(acc || text) % SIGILS.length];
     setMessages((p) => p.map((m) => (m.id === oid ? { ...m, raw: acc, segments: finalSegs, streaming: false, sigil: sig } : m)));
-    setBusy(false); setThinking(false); setMood("orbit"); setEssence(265);
+    setBusyWho(null); setThinking(false);
+    if (here()) { setMood(restMood); setEssence(restHue); }
 
-    const mk = finalSegs.find((s) => s.kind === "mark" && s.meta.days);
+    // Crisis and sensitive asks never become Marks.
+    let markNote = "";
+    // …nor does a Mark the channel was cut inside.
+    const cutAt = finalSegs.findIndex((s) => s.kind === "seal" && s.meta.cut);
+    const mk = crisis || sensitive ? undefined : finalSegs.find((s, i) => s.kind === "mark" && s.meta.days && s.text && i !== cutAt - 1);
     if (mk) {
       const days = parseInt(mk.meta.days, 10);
       if (days >= 1) {
         const created = Date.now();
         setMarks((p) => [{
           id: `${created}-${Math.floor(Math.random() * 1e6)}`, who: asWho, question: text,
-          text: mk.text, createdAt: created, dueAt: created + days * DAY, status: "pending",
+          text: mk.text, createdAt: created, dueAt: addDays(created, days), status: "pending", updatedAt: created,
         }, ...p]);
+        markNote = ` A Mark was added to your ledger, due ${dueDate(addDays(created, days))}.`;
       }
     }
-    vibrate([10, 40, 12]);
-    scrollDown();
+    // Announce once, when the reading seals — never per token.
+    const said = spoken(crisis || sensitive ? finalSegs.filter((s) => s.kind !== "mark") : finalSegs);
+    setAnnounce(`${voice}: ${said || "the reading went quiet. Ask again."}${markNote}${
+      crisis ? " Crisis support follows: call or text 988 in the US, or visit findahelpline.com." : ""}`);
+    if (!crisis) vibrate([10, 40, 12]);
+    scrollDown(asWho, true);
   }, [busy, buildHistory, scrollDown]);
 
-  const switchWho = useCallback((next: OracleId) => {
-    if (busy) return;
-    setWho(next);
-    setChamber(next === "mentor" ? "mentor" : "oracle");
-    setEssence(next === "mentor" ? 190 : 265);
-    setMood(next === "mentor" ? "gentle" : "orbit");
-  }, [busy]);
-
   const clearSitting = useCallback(() => {
+    // Both threads go, so ask first. The Marks stay.
+    if (msgsRef.current.length && !window.confirm("Begin a new sitting? This erases both the Oracle and the Mentor threads on this device. Your Marks stay.")) return;
     abortRef.current?.abort();
-    setBusy(false); setThinking(false); setMessages([]);
+    setBusyWho(null); setThinking(false); setMessages([]);
     try { localStorage.removeItem(CONVO_KEY); } catch { /* */ }
   }, []);
 
   const setMark = useCallback((id: string, status: Mark["status"]) => {
     setNow(Date.now());
-    setMarks((p) => p.map((m) => (m.id === id ? { ...m, status } : m)));
+    setMarks((p) => p.map((m) => (m.id === id ? { ...m, status, updatedAt: Date.now() } : m)));
     if (status === "true") { vibrate([10, 30, 10]); setEssence(45); }
   }, []);
 
-  const pending = useMemo(() => marks.filter((m) => m.status === "pending").length, [marks]);
+  // A crisis ask that slipped into the ledger before the floor held is never watched.
+  const watched = useMemo(() => marks.filter((m) => !isCrisis(m.question)), [marks]);
+  const pending = useMemo(() => watched.filter((m) => m.status === "pending").length, [watched]);
 
   const goChamber = useCallback((c: Chamber) => {
     setChamber(c);
     setCharge(`nt-ch-${c}`);
+    // keep the open chamber in view, so the swarm never chases an off-screen tab
+    requestAnimationFrame(() => document.getElementById(`nt-ch-${c}`)?.scrollIntoView({ inline: "nearest", block: "nearest" }));
     setMood("gather");
     setEssence(c === "mentor" ? 190 : c === "twelve" ? 285 : c === "marks" ? 45 : 265);
     setTimeout(() => setMood(c === "mentor" ? "gentle" : "orbit"), 900);
     if (c === "marks") setNow(Date.now());
     if (c === "oracle") setWho("natari");
     if (c === "mentor") setWho("mentor");
+    if (c === "oracle" || c === "mentor") stickRef.current = true; // arrive following the live reading
   }, []);
 
   return (
     <div style={{ minHeight: "100dvh", color: ink, fontFamily: bodyFont, position: "relative", background: "#0F1114" }}>
       <Aurora />
-      <Swarm attractorId={charge} essence={essence} mood={mood} />
+      <Swarm attractorId={charge} essence={essence} mood={mood} paused={breathe} />
       <GlobalStyle />
 
       {!entered ? (
@@ -287,17 +438,19 @@ export default function NatariExperience() {
       ) : (
         <Console
           chamber={chamber} goChamber={goChamber}
-          who={who} switchWho={switchWho}
-          messages={messages} thinking={thinking} busy={busy}
+          who={who}
+          messages={messages} thinking={thinking} busyWho={busyWho}
           input={input} setInput={setInput} onAsk={ask} onClear={clearSitting}
-          scrollRef={scrollRef}
-          marks={marks} now={now} setMark={setMark} pending={pending}
+          scrollRef={scrollRef} onScroll={onScroll}
+          marks={watched} now={now} setMark={setMark} pending={pending}
           beat={beat}
           onBreathe={() => setBreathe(true)}
           setEssence={setEssence} setCharge={setCharge}
         />
       )}
       {breathe && <Breathe onClose={() => setBreathe(false)} />}
+      {/* one voice for screen readers: the reading as it seals, and any new Mark */}
+      <div role="status" aria-live="polite" style={srOnly}>{announce}</div>
     </div>
   );
 }
@@ -326,7 +479,7 @@ function GlobalStyle() {
       .nt-scroll::-webkit-scrollbar { width: 10px }
       .nt-scroll::-webkit-scrollbar-thumb { background: rgba(167,139,255,.28); border-radius: 8px }
       @media (prefers-reduced-motion: reduce) {
-        .nt-unfurl, .nt-cursor { animation: none !important; }
+        .nt-unfurl, .nt-cursor, .nt-pulse, .nt-ask, .nt-think-dot, .nt-think-text { animation: none !important; }
         .nt-rung:hover, .nt-rung:focus-visible { transform: none; }
       }
     `}</style>
@@ -391,7 +544,7 @@ function Portal({ onEnter, beat }: { onEnter: () => void; beat: ReturnType<typeo
       )}
 
       <button
-        className="nt-press"
+        className="nt-press nt-pulse"
         onClick={onEnter}
         style={{
           marginTop: 52, padding: "22px 52px", borderRadius: 999, cursor: "pointer",
@@ -415,6 +568,11 @@ const kicker: React.CSSProperties = {
   textTransform: "uppercase", color: labelInk, margin: 0,
 };
 
+// The crisis line is a real line — tappable, never plain text.
+const footLink: React.CSSProperties = {
+  color: accent, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3,
+};
+
 // ── The Console ─────────────────────────────────────────────────────────────
 
 const CHAMBERS: { id: Chamber; label: string; sigil: string }[] = [
@@ -427,19 +585,29 @@ const CHAMBERS: { id: Chamber; label: string; sigil: string }[] = [
 
 function Console(props: {
   chamber: Chamber; goChamber: (c: Chamber) => void;
-  who: OracleId; switchWho: (o: OracleId) => void;
-  messages: Msg[]; thinking: boolean; busy: boolean;
+  who: OracleId;
+  messages: Msg[]; thinking: boolean; busyWho: OracleId | null;
   input: string; setInput: (v: string) => void; onAsk: (t: string) => void; onClear: () => void;
-  scrollRef: React.RefObject<HTMLDivElement | null>;
+  scrollRef: React.RefObject<HTMLDivElement | null>; onScroll: () => void;
   marks: Mark[]; now: number; setMark: (id: string, s: Mark["status"]) => void; pending: number;
   beat: ReturnType<typeof heartbeat> | null;
   onBreathe: () => void;
   setEssence: (h: number) => void; setCharge: (id: string | null) => void;
 }) {
-  const { chamber, goChamber, who, messages, thinking, busy, input, setInput, onAsk, onClear,
-    scrollRef, marks, now, setMark, pending, beat, onBreathe, setEssence, setCharge } = props;
+  const { chamber, goChamber, who, messages, thinking, busyWho, input, setInput, onAsk, onClear,
+    scrollRef, onScroll, marks, now, setMark, pending, beat, onBreathe, setEssence, setCharge } = props;
 
   const isChat = chamber === "oracle" || chamber === "mentor";
+  const busy = busyWho !== null;
+  const taRef = useRef<HTMLTextAreaElement>(null);
+
+  // The composer grows with the story — a few rows, then it scrolls.
+  useLayoutEffect(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight + el.offsetHeight - el.clientHeight, 140)}px`;
+  }, [input, isChat]);
 
   return (
     <div style={{ position: "relative", zIndex: 2, height: "100dvh", display: "flex", flexDirection: "column", animation: `nt-fade .8s ${ease} both` }}>
@@ -499,14 +667,14 @@ function Console(props: {
       </nav>
 
       {/* chamber body */}
-      <div ref={scrollRef} className="nt-scroll" style={{ flex: 1, overflowY: "auto", overscrollBehavior: "contain" }}>
+      <div ref={scrollRef} onScroll={onScroll} className="nt-scroll" style={{ flex: 1, overflowY: "auto", overscrollBehavior: "contain" }}>
         <div style={{ maxWidth: WRAP, margin: "0 auto", padding: "44px 20px 40px" }}>
-          {chamber === "current" && <Current beat={beat} marks={marks} now={now} goChamber={goChamber} onBreathe={onBreathe} />}
+          {chamber === "current" && <Current beat={beat} marks={marks} now={now} goChamber={goChamber} onBreathe={onBreathe} setInput={setInput} />}
           {chamber === "twelve" && <Twelve setEssence={setEssence} setCharge={setCharge} />}
           {chamber === "marks" && <Marks marks={marks} now={now} setMark={setMark} />}
           {isChat && (
             <Conversation
-              who={who} messages={messages} thinking={thinking} onAsk={onAsk} onBreathe={onBreathe}
+              who={who} messages={messages} thinking={thinking && busyWho === who} onAsk={onAsk} onBreathe={onBreathe}
             />
           )}
         </div>
@@ -519,15 +687,25 @@ function Console(props: {
           borderTop: "1px solid rgba(167,139,255,0.16)",
           background: "rgba(15,17,20,0.78)", backdropFilter: "blur(16px)",
         }}>
+          {busyWho && busyWho !== who && (
+            <p style={{ margin: "0 auto 12px", maxWidth: WRAP, fontFamily: mono, fontSize: 13, letterSpacing: "0.06em", color: labelInk, textAlign: "center" }}>
+              {busyWho === "mentor"
+                ? "The Mentor is still reading — your turn here opens when it's done."
+                : "Natari is still reading in the Oracle — your turn here opens when she's done."}
+            </p>
+          )}
           <form onSubmit={(e) => { e.preventDefault(); onAsk(input); }}
             style={{ display: "flex", gap: 12, alignItems: "flex-end", maxWidth: WRAP, margin: "0 auto" }}>
             <textarea
+              ref={taRef}
               className="nt-in"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onAsk(input); } }}
+              // Enter sends — unless an IME is still composing the word.
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) { e.preventDefault(); onAsk(input); } }}
               placeholder={who === "mentor" ? "Tell the Mentor what's actually going on…" : "Bring Natari a question, a plan, a knot…"}
-              rows={1} enterKeyHint="send"
+              aria-label={who === "mentor" ? "Your message to the Mentor" : "Your question for Natari"}
+              rows={1} maxLength={4000} enterKeyHint="send"
               style={{
                 flex: 1, resize: "none", padding: "17px 20px", fontSize: 17, lineHeight: 1.55,
                 color: ink, fontFamily: bodyFont, borderRadius: 18, maxHeight: 140,
@@ -550,7 +728,10 @@ function Console(props: {
             >✦</button>
           </form>
           <p style={{ margin: "12px auto 0", maxWidth: WRAP, fontSize: 13, lineHeight: 1.6, color: inkSecondary, textAlign: "center", opacity: 0.95 }}>
-            Insight and guidance — not medical, legal, or financial advice. In crisis? US: call or text 988 · elsewhere: findahelpline.com
+            Insight and guidance — not medical, legal, or financial advice. In crisis? US:{" "}
+            <a href="tel:988" className="nt-focus" style={footLink}>call</a> or{" "}
+            <a href="sms:988" className="nt-focus" style={footLink}>text 988</a> · elsewhere:{" "}
+            <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" className="nt-focus" style={footLink}>findahelpline.com</a>
           </p>
         </footer>
       )}
@@ -560,9 +741,9 @@ function Console(props: {
 
 // ── THE CURRENT — the daily surface ─────────────────────────────────────────
 
-function Current({ beat, marks, now, goChamber, onBreathe }: {
+function Current({ beat, marks, now, goChamber, onBreathe, setInput }: {
   beat: ReturnType<typeof heartbeat> | null; marks: Mark[]; now: number;
-  goChamber: (c: Chamber) => void; onBreathe: () => void;
+  goChamber: (c: Chamber) => void; onBreathe: () => void; setInput: (v: string) => void;
 }) {
   const due = marks.filter((m) => m.status === "pending" && now >= m.dueAt).length;
   const hits = marks.filter((m) => m.status === "true").length;
@@ -593,7 +774,7 @@ function Current({ beat, marks, now, goChamber, onBreathe }: {
         <p style={{ margin: 0, fontFamily: display, fontWeight: 300, fontSize: "clamp(1.5rem, 4.4vw, 2.1rem)", lineHeight: 1.35, color: ink }}>
           {beat.question}
         </p>
-        <button className="nt-press nt-focus" onClick={() => goChamber("oracle")}
+        <button className="nt-press nt-focus" onClick={() => { goChamber("oracle"); setInput(beat.question); }}
           style={{ marginTop: 26, padding: "15px 28px", borderRadius: 14, cursor: "pointer", fontFamily: mono, fontSize: 13.5, letterSpacing: "0.14em", textTransform: "uppercase", color: ink, ...glassRaised }}>
           Bring it to Natari →
         </button>
@@ -775,19 +956,31 @@ function Rung({ l, i, open, onToggle, onCharge }: { l: LeveragePoint; i: number;
 function Marks({ marks, now, setMark }: { marks: Mark[]; now: number; setMark: (id: string, s: Mark["status"]) => void }) {
   const sorted = [...marks].sort((a, b) => b.createdAt - a.createdAt);
   const hits = marks.filter((m) => m.status === "true").length;
-  const resolved = marks.filter((m) => m.status !== "pending").length;
-  const rate = resolved ? Math.round((hits / resolved) * 100) : null;
+  // An honest rate: only Marks whose window has arrived, and that you've reckoned.
+  // An early hit waits for its window like a miss must.
+  const matured = marks.filter((m) => now >= m.dueAt);
+  const reckoned = matured.filter((m) => m.status !== "pending");
+  const unreckoned = matured.length - reckoned.length;
+  const maturedHits = reckoned.filter((m) => m.status === "true").length;
+  const rate = reckoned.length ? Math.round((maturedHits / reckoned.length) * 100) : null;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
-      <SectionHead kicker="The Marks" title="Held to account" sub="Every dated call Natari makes lands here with a countdown. When its window arrives, you tell her the truth. She keeps her own scorecard." />
+      <SectionHead kicker="The Marks" title="Held to account" sub="Every dated call Natari makes lands here with a countdown. When its window arrives, you tell her the truth. This is your scorecard, kept on this device." />
 
       {marks.length > 0 && (
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))" }}>
           <MiniStat n={String(marks.length)} l="watched" />
           <MiniStat n={String(hits)} l="came true" tone={goldText} />
           <MiniStat n={rate === null ? "—" : `${rate}%`} l="hit rate" tone={accent} />
+          <MiniStat n={String(unreckoned)} l="unreckoned" tone={unreckoned ? gold : ink} />
         </div>
+      )}
+      {marks.length > 0 && (
+        <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: inkSecondary }}>
+          The hit rate counts only Marks whose window has arrived and been reckoned.
+          {unreckoned > 0 && ` ${unreckoned} ${unreckoned === 1 ? "is" : "are"} waiting for your verdict.`}
+        </p>
       )}
 
       {sorted.length === 0 && (
@@ -801,11 +994,16 @@ function Marks({ marks, now, setMark }: { marks: Mark[]; now: number; setMark: (
 
       {sorted.map((m, i) => {
         const dueNow = now >= m.dueAt;
-        const days = Math.ceil((m.dueAt - now) / DAY);
+        const days = daysUntil(m.dueAt, now);
         const status = m.status === "true" ? { t: "Came true ✦", c: goldText }
           : m.status === "miss" ? { t: "The window passed — not this time", c: inkSecondary }
           : dueNow ? { t: "The window is open — did it land?", c: accent }
-          : { t: days <= 1 ? "Comes due today" : `Comes due in ${days} days`, c: signal };
+          : {
+            t: days <= 0 ? `Comes due today · ${dueTime(m.dueAt)}`
+              : days === 1 ? `Comes due tomorrow · ${dueDate(m.dueAt)}`
+              : `Comes due in ${days} days · ${dueDate(m.dueAt)}`,
+            c: signal,
+          };
         return (
           <article key={m.id} className="nt-unfurl" style={{
             animationDelay: `${Math.min(i, 8) * 0.05}s`, borderRadius: 20, padding: "26px 24px",
@@ -878,7 +1076,7 @@ function Conversation({ who, messages, thinking, onAsk, onBreathe }: {
           />
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             {asks.map((q, i) => (
-              <button key={q} className="nt-press nt-focus" onClick={() => onAsk(q)}
+              <button key={q} className="nt-press nt-focus nt-ask" onClick={() => onAsk(q)}
                 style={{
                   animation: `nt-unfurl .8s ${ease} ${i * 0.05}s both`,
                   padding: "14px 20px", borderRadius: 14, cursor: "pointer", textAlign: "left",
@@ -899,7 +1097,17 @@ function Conversation({ who, messages, thinking, onAsk, onBreathe }: {
 
       {mine.map((m) => m.role === "user"
         ? <UserTurn key={m.id} text={m.text ?? ""} />
-        : (m.segments?.length ? <Reading key={m.id} msg={m} /> : null))}
+        : (
+          <Fragment key={m.id}>
+            {m.segments?.length ? <Reading msg={m} /> : null}
+            {/* pinned under the reading, live or local — and still there after a reload */}
+            {m.crisis && (
+              <CrisisCard palette={CRISIS_PALETTE} voice={who === "mentor"
+                ? "You don't have to carry this alone. A real person is one tap away, any hour — reaching for them is strength, not defeat."
+                : "Stay with me a moment. A real person is one tap away, any hour — and your story is longer than tonight."} />
+            )}
+          </Fragment>
+        ))}
 
       {thinking && <Thinking who={who} />}
     </div>
@@ -920,10 +1128,10 @@ function UserTurn({ text }: { text: string }) {
 }
 
 function Reading({ msg }: { msg: Msg }) {
-  const segs = msg.segments ?? [];
+  const segs = shownSegs(msg);
   const streaming = !!msg.streaming;
   return (
-    <article className="nt-unfurl" style={{ width: "100%" }}>
+    <article className="nt-unfurl" aria-busy={streaming} style={{ width: "100%" }}>
       <div style={{ ...kicker, fontSize: 12, marginBottom: 12 }}>
         {msg.who === "mentor" ? "☾ MotusMentor" : "☉ Natari"}
       </div>
@@ -976,8 +1184,8 @@ function Reading({ msg }: { msg: Msg }) {
 function Thinking({ who }: { who: OracleId }) {
   return (
     <div className="nt-unfurl" style={{ display: "flex", alignItems: "center", gap: 14, padding: "8px 4px" }}>
-      <span aria-hidden style={{ width: 12, height: 12, borderRadius: 999, background: violet, boxShadow: `0 0 22px ${violet}`, animation: "nt-drift 1.8s ease-in-out infinite" }} />
-      <span style={{
+      <span aria-hidden className="nt-think-dot" style={{ width: 12, height: 12, borderRadius: 999, background: violet, boxShadow: `0 0 22px ${violet}`, animation: "nt-drift 1.8s ease-in-out infinite" }} />
+      <span className="nt-think-text" style={{
         fontFamily: mono, fontSize: 15, letterSpacing: "0.06em",
         background: `linear-gradient(90deg, ${inkSecondary} 25%, ${goldText} 50%, ${inkSecondary} 75%)`,
         backgroundSize: "220% 100%", backgroundClip: "text", WebkitBackgroundClip: "text",

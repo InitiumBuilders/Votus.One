@@ -20,10 +20,10 @@ export default function OracleOrb({
         @keyframes nf-orb-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes nf-orb-spin-r { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
         @keyframes nf-orb-iris { 0%, 100% { transform: scale(1); } 50% { transform: scale(${divining ? 0.72 : 0.92}); } }
-        @media (prefers-reduced-motion: reduce) { .nf-orb * { animation: none !important; } }
+        @media (prefers-reduced-motion: reduce) { .nf-orb *, .nf-orb-halo { animation: none !important; } }
       `}</style>
       {/* halo */}
-      <div style={{
+      <div className="nf-orb-halo" style={{
         position: "absolute", inset: "-30%", borderRadius: "50%",
         background: `radial-gradient(circle, ${divining ? "rgba(255,209,102,0.16)" : "rgba(124,77,255,0.14)"}, transparent 60%)`,
         filter: "blur(12px)", transition: "background 1.2s ease",

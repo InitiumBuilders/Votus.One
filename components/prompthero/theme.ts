@@ -1,8 +1,10 @@
 // Shared design tokens for /prompthero — the site's cinematic language,
 // plus one warm gold reserved for earned things (badges, EVOs).
-export const dim = "rgba(250,250,250,0.45)";
+// Text ink is computed, never eyeballed — WCAG on #09090b:
+// mid 8.1:1 · dim 7.0:1 · faint 5.5:1. Hierarchy lives in size, not in grey.
+export const dim = "rgba(250,250,250,0.6)";
 export const mid = "rgba(250,250,250,0.65)";
-export const faint = "rgba(250,250,250,0.3)";
+export const faint = "rgba(250,250,250,0.52)";
 export const cyan = "#00d4ff";
 export const gold = "rgba(255,209,102,0.85)";
 export const ember = "#ff9e64";

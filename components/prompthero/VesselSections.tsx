@@ -7,7 +7,7 @@ function Section({ kicker, title, children }: { kicker: string; title: string; c
   return (
     <section style={sectionStyle}>
       <div style={columnStyle}>
-        <Reveal><p style={kickerStyle}>{kicker}</p></Reveal>
+        <Reveal sound="reveal"><p style={kickerStyle}>{kicker}</p></Reveal>
         <Reveal delay={0.1}><h2 style={h2Style}>{title}</h2></Reveal>
         {children}
       </div>
@@ -90,7 +90,7 @@ export function TheCharge() {
   return (
     <section style={{ ...sectionStyle, padding: "88px 24px" }}>
       <div style={{ maxWidth: 560, width: "100%" }}>
-        <Reveal>
+        <Reveal sound="reveal">
           <p style={kickerStyle}>The Charge</p>
         </Reveal>
         <Reveal delay={0.15}>
@@ -183,7 +183,7 @@ export function Gratitude() {
         <Reveal>
           <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(255,209,102,0.3), transparent)", marginBottom: 56 }} />
         </Reveal>
-        <Reveal delay={0.1}>
+        <Reveal delay={0.1} sound="reveal">
           <p style={{ fontSize: 12, letterSpacing: "0.5em", textTransform: "uppercase", color: faint, marginBottom: 28 }}>A Thank You Note To Anthropic</p>
         </Reveal>
         <Reveal delay={0.2}>

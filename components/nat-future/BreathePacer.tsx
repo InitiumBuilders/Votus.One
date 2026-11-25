@@ -5,6 +5,7 @@
 // oracle's own face.
 
 import { useEffect, useState } from "react";
+import { useDialog } from "../useDialog";
 import { dim, gold, goldSoft, mid, moon, sans, serif, veil } from "./theme";
 
 const CYCLE: [string, number][] = [
@@ -14,6 +15,7 @@ const CYCLE: [string, number][] = [
 ];
 
 export default function BreathePacer({ onClose }: { onClose: () => void }) {
+  const ref = useDialog<HTMLDivElement>(onClose);
   const [phase, setPhase] = useState(0);
   const [round, setRound] = useState(0);
 
@@ -29,6 +31,7 @@ export default function BreathePacer({ onClose }: { onClose: () => void }) {
 
   return (
     <div
+      ref={ref}
       role="dialog"
       aria-modal="true"
       aria-label="Breathing pacer"

@@ -2,30 +2,23 @@
 
 // The Marks — every dated call the oracle has made, held to account. A living
 // ledger: a countdown to each prediction's window, and one honest question when
-// it arrives — did it come true? The oracle keeps its own scorecard.
+// it arrives — did it come true? You keep the scorecard, on this device.
 
-import type { OracleId } from "./oracle";
+import { useEffect, useState } from "react";
+import { useDialog } from "../useDialog";
+import { daysUntil, dueDateLabel, scorecard, type Mark } from "./ledger";
 import { dim, faint, gold, goldSoft, mid, moon, sans, serif, teal, veilSoft } from "./theme";
 
-export interface Mark {
-  id: string;
-  oracle: OracleId;
-  question: string;
-  text: string;
-  createdAt: number;
-  dueAt: number;
-  status: "pending" | "true" | "miss";
-}
+export type { Mark } from "./ledger";
 
-const DAY = 86400000;
-
+// Calendar days, local time: "tomorrow" means the next date on your wall.
 function countdown(m: Mark, now: number): { label: string; color: string } {
   if (m.status === "true") return { label: "Came true ✦", color: gold };
   if (m.status === "miss") return { label: "The window passed — not this time", color: dim };
-  const diff = m.dueAt - now;
-  if (diff <= 0) return { label: "The window has arrived — did it land?", color: teal };
-  const days = Math.ceil(diff / DAY);
-  if (days <= 1) return { label: "Comes due today", color: goldSoft };
+  if (m.dueAt <= now) return { label: "The window has arrived — did it land?", color: teal };
+  const days = daysUntil(m.dueAt, now);
+  if (days <= 0) return { label: "Comes due today", color: goldSoft };
+  if (days === 1) return { label: "Comes due tomorrow", color: goldSoft };
   return { label: `Comes due in ${days} days`, color: goldSoft };
 }
 
@@ -40,13 +33,21 @@ export default function Marks({
   onSet: (id: string, status: Mark["status"]) => void;
   onClose: () => void;
 }) {
+  const ref = useDialog<HTMLDivElement>(onClose);
+  // The clock keeps ticking while the ledger is open.
+  const [clock, setClock] = useState(now);
+  useEffect(() => {
+    const t = setInterval(() => setClock(Date.now()), 60000);
+    return () => clearInterval(t);
+  }, []);
+  const at = Math.max(now, clock);
+
   const sorted = [...marks].sort((a, b) => b.createdAt - a.createdAt);
-  const fulfilled = marks.filter((m) => m.status === "true").length;
-  const resolved = marks.filter((m) => m.status !== "pending").length;
-  const rate = resolved ? Math.round((fulfilled / resolved) * 100) : null;
+  const { fulfilled, unreckoned, rate } = scorecard(marks, at);
 
   return (
     <div
+      ref={ref}
       role="dialog"
       aria-modal="true"
       aria-label="The Marks"
@@ -66,7 +67,7 @@ export default function Marks({
             ⚡ The Marks
           </div>
           <div style={{ fontSize: 11, color: dim, marginTop: 4, fontFamily: serif, fontStyle: "italic" }}>
-            Every dated call, held to account.
+            Every dated call, held to account — your scorecard, kept on this device.
           </div>
         </div>
         <button
@@ -82,10 +83,21 @@ export default function Marks({
       </header>
 
       {marks.length > 0 && (
-        <div style={{ display: "flex", gap: 10, padding: "14px 16px 4px", maxWidth: 760, width: "100%", margin: "0 auto" }}>
-          <Stat n={String(marks.length)} label="watched" />
-          <Stat n={String(fulfilled)} label="came true" accent={gold} />
-          <Stat n={rate === null ? "—" : `${rate}%`} label="hit rate" accent={teal} />
+        <div style={{ padding: "14px 16px 4px", maxWidth: 760, width: "100%", margin: "0 auto", boxSizing: "border-box" }}>
+          <div style={{ display: "flex", gap: 10 }}>
+            <Stat n={String(marks.length)} label="watched" />
+            <Stat n={String(fulfilled)} label="came true" accent={gold} />
+            <Stat n={rate === null ? "—" : `${rate}%`} label="hit rate" accent={teal} />
+          </div>
+          {/* Only closed windows are scored; the unanswered ones are named, not hidden. */}
+          <p style={{ margin: "10px 2px 0", fontSize: 11, lineHeight: 1.6, color: mid, fontFamily: sans, textAlign: "center" }}>
+            Hit rate counts only calls whose window has closed.
+            {unreckoned > 0 && (
+              <span style={{ color: goldSoft }}>
+                {" "}{unreckoned} {unreckoned === 1 ? "window has" : "windows have"} closed unreckoned — tell the ledger what happened.
+              </span>
+            )}
+          </p>
         </div>
       )}
 
@@ -101,11 +113,12 @@ export default function Marks({
           )}
 
           {sorted.map((m, i) => {
-            const c = countdown(m, now);
-            const due = now >= m.dueAt; // a genuine miss can only be recorded once the window has passed
+            const c = countdown(m, at);
+            const due = at >= m.dueAt; // a genuine miss can only be recorded once the window has passed
             return (
               <div
                 key={m.id}
+                className="nf-card"
                 style={{
                   border: `1px solid ${m.status === "true" ? "rgba(255,209,102,0.4)" : "rgba(124,77,255,0.22)"}`,
                   borderRadius: 16, padding: "16px 18px",
@@ -122,6 +135,9 @@ export default function Marks({
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 14, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 11, letterSpacing: "0.12em", color: c.color, fontFamily: sans }}>
                     {c.label}
+                    {m.status === "pending" && (
+                      <span style={{ color: mid }}> · {dueDateLabel(m.dueAt, at)}</span>
+                    )}
                   </span>
                   {m.status === "pending" ? (
                     <div style={{ display: "flex", gap: 8 }}>

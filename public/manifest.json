@@ -11,6 +11,25 @@
       "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
+    },
+    {
+      "src": "/apple-icon",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Natari — Systems With Soul",
+      "short_name": "Natari",
+      "description": "Diagnose the system. Never blame the node. Always leave a door.",
+      "url": "/natari"
+    },
+    {
+      "name": "Nat-Future-Insight — The Oracle",
+      "short_name": "Nat-Future",
+      "description": "Ask the oracle. Always bright. Never unsure.",
+      "url": "/nat-future-insight"
     }
   ]
 }

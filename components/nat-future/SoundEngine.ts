@@ -47,8 +47,9 @@ export const Sound = {
     }
   },
 
+  // A true no-op when nothing hums — it never wakes an AudioContext to stop silence.
   humStop() {
-    const c = ac();
+    const c = ctx;
     if (!c || !hum) return;
     const h = hum;
     hum = null;
