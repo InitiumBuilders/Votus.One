@@ -143,6 +143,8 @@ Prompt Change.
 MIT — use it, fork it, teach with it.
 If you use it to grow better askers, we consider that a win.
 
+See [LICENSE](LICENSE). Copyright (c) 2026 August James Domanchuk. Developers and partners can reach us at InitiumBuilders@gmail.com.
+
 ---
 
 <div align="center">
